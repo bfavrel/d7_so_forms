@@ -1,0 +1,9 @@
+name = "Forms! Enhanced numerical widgets"
+description = "Provide a slider widget to Forms! (and perhaps further a knob one)"
+package = "Saison d'Or"
+core = "7.x"
+version = "7.x-1.0"
+
+dependencies[] = so_forms
+
+files[] = widgets/FormWidgetSlider.class.php

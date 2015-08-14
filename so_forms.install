@@ -1,0 +1,570 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function so_forms_schema() {
+    $schema = array();
+
+    $schema['so_forms'] = array(
+        'description' => "Store the forms' definitions",
+        'fields' => array(
+            'sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Primary key : form id",
+                'not null' => false,
+            ),
+            'name' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => false,
+                'default' => '',
+                'description' => "Human readable name",
+            ),
+            'params' => array(
+                'type' => 'text',
+                'description' => "Form's parameters",
+                'not null' => false,
+            ),
+            'secured_sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Public form's id",
+                'not null' => false,
+            ),
+        ),
+        'primary key' => array('sfid'),
+    );
+
+    $schema['so_forms_fields'] = array(
+        'description' => "Stores the forms' elements",
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'unsigned' => true,
+                'not null' => true,
+                'description' => "Primary Key: form field's id",
+            ),
+            'sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Form's id",
+                'not null' => true,
+                'default' => '',
+            ),
+            /* // moved in {so_forms_fields_displays} in 7002
+            'label' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => true,
+                'default' => '',
+                'description' => "Form's field's name",
+            ),*/
+            'field' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => true,
+                'default' => '',
+                'description' => "Form's field",
+            ),
+            'field_type' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => false,
+                'default' => '',
+                'description' => "Field type",
+            ),
+            'widget' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => false,
+                'default' => '',
+                'description' => "Form's field's widget",
+            ),
+            'field_values' => array(
+                'type' => 'text',
+                'not null' => false,
+                'description' => "Stored values for the field",
+            ),
+
+            /* // moved in {so_forms_fields_displays} in 7002
+            'gid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => false,
+                'default' => '',
+                'description' => "Parent group's form's field's id",
+            ),
+            'weight' => array(
+                'type' => 'int',
+                'unsigned' => false,
+                'not null' => true,
+                'default' => 0,
+                'description' => "Form's field's weight",
+            ),*/
+
+            'params' => array(
+                'type' => 'text',
+                'description' => "Form's field's parameters",
+                'not null' => false,
+            ),
+            'secured_id' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Public field's id",
+                'not null' => false,
+            ),
+        ),
+        'indexes' => array(
+            'sfid' => array('sfid'),
+        ),
+        'primary key' => array('id'),
+    );
+
+    // created in 7001
+    $schema['so_forms_url_params'] = array(
+        'description' => "Stores user inputs to be retrieved by URL key",
+
+        'fields' => array(
+            'id' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Primary key",
+                'not null' => false,
+            ),
+            'sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Form's id",
+                'not null' => true,
+                'default' => '',
+            ),
+            'params' => array(
+                'type' => 'text',
+                'description' => "Form's parameters",
+                'not null' => false,
+            ),
+            'last_use' => array(
+                'type' => 'int',
+                'not null' => true,
+                'default' => 0,
+                'description' => "Unix timestamp of last use",
+            ),
+            'uses' => array(
+                'type' => 'int',
+                'not null' => true,
+                'default' => 0,
+                'description' => "Number of submission",
+            ),
+        ),
+        'primary key' => array('id', 'sfid'),
+    );
+
+    // created in 7002
+    $schema['so_forms_fields_displays'] = array(
+        'description' => "Stores fields' display params",
+
+        'fields' => array(
+
+            'fid' => array(
+                'type' => 'int',
+                'not null' => true,
+                'unsigned' => true,
+                'description' => "The field's id. Primary key",
+            ),
+
+            'display' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The form's display machine name. Primary key",
+                'not null' => true,
+            ),
+
+            'label' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => true,
+                'default' => '',
+                'description' => "Form's field's human readable name.",
+            ),
+
+            'enabled' => array(
+                'description' => "A boolean indicating whether the field is visible or not.",
+                'type' => 'int',
+                'not null' => true,
+                'default' => 0,
+            ),
+
+            'form_region' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The region where display the field.",
+                'not null' => true,
+            ),
+
+            'gid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Parent group's id.",
+                'not null' => false,
+            ),
+
+            'weight' => array(
+                'type' => 'int',
+                'unsigned' => false,
+                'not null' => true,
+                'default' => 0,
+                'description' => "Form's field's weight",
+            ),
+        ),
+
+        'primary key' => array('fid', 'display'),
+    );
+
+    // created in 7003
+    $schema['so_forms_displays'] = array(
+        'description' => "Stores forms' params",
+
+        'fields' => array(
+            'sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Form's id. Primary key",
+                'not null' => false,
+            ),
+
+            'display' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The form's display machine name. Primary key",
+                'not null' => true,
+            ),
+
+            'display_label' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The human readable display name",
+                'not null' => true,
+            ),
+
+            'configuration' => array(
+                'type' => 'text',
+                'description' => "Form's display configuration",
+                'not null' => false,
+            ),
+        ),
+
+        'primary key' => array('sfid', 'display'),
+    );
+
+    return $schema;
+}
+
+/**
+ * Adding table 'so_forms_url_params'.
+ */
+function so_forms_update_7001() {
+
+    $table_definition = array(
+        'description' => "Stores user inputs to be retrieved by URL key",
+
+        'fields' => array(
+            'id' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Primary key",
+                'not null' => false,
+            ),
+            'sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Form's id",
+                'not null' => true,
+                'default' => '',
+            ),
+            'params' => array(
+                'type' => 'text',
+                'description' => "Form's parameters",
+                'not null' => true,
+            ),
+            'last_use' => array(
+                'type' => 'int',
+                'not null' => true,
+                'default' => 0,
+                'description' => "Unix timestamp of last use",
+            ),
+            'uses' => array(
+                'type' => 'int',
+                'not null' => true,
+                'default' => 0,
+                'description' => "Number of submission",
+            ),
+        ),
+        'primary key' => array('id', 'sfid'),
+    );
+
+    db_create_table('so_forms_url_params', $table_definition);
+
+    return t("The table 'so_forms_url_params' has been created");
+}
+
+/**
+ * Adding table 'so_forms_fields_displays', populating, and cleaning.
+ */
+function so_forms_update_7002() {
+
+    $message = array();
+
+    //----- Adding table
+
+    $so_forms_fields_displays = array(
+        'description' => "Stores fields' display params",
+
+        'fields' => array(
+
+            'fid' => array(
+                'type' => 'int',
+                'not null' => true,
+                'unsigned' => true,
+                'description' => "The field's id. Primary key",
+            ),
+
+            'display' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The form's display machine name. Primary key",
+                'not null' => true,
+            ),
+
+            'label' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => true,
+                'default' => '',
+                'description' => "Form's field's human readable name.",
+            ),
+
+            'enabled' => array(
+                'description' => "A boolean indicating whether the field is visible or not.",
+                'type' => 'int',
+                'not null' => true,
+                'default' => 0,
+            ),
+
+            'form_region' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The region where display the field.",
+                'not null' => true,
+            ),
+
+            'gid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Parent group's id.",
+                'not null' => false,
+            ),
+
+            'weight' => array(
+                'type' => 'int',
+                'unsigned' => false,
+                'not null' => true,
+                'default' => 0,
+                'description' => "Form's field's weight",
+            ),
+        ),
+
+        'primary key' => array('fid', 'display'),
+    );
+
+    db_create_table('so_forms_fields_displays', $so_forms_fields_displays);
+
+    $message[] = "The table 'so_forms_fields_displays' has been created.";
+
+    //----- Populating table
+
+    $results = db_query("SELECT * FROM {so_forms_fields}");
+
+    while($row = $results->fetchObject()) {
+
+        $row->params = unserialize($row->params);
+
+        db_query("INSERT INTO {so_forms_fields_displays} SET
+            fid=:fid,
+            display=:display,
+            label=:label,
+            enabled=:enabled,
+            form_region=:form_region,
+            gid=:gid,
+            weight=:weight",
+            array(
+                ':fid' => $row->id,
+                ':display' => 'default',
+                ':label' => $row->label,
+                ':enabled' => (int)$row->params['enabled'],
+                ':form_region' => $row->params['form_region'],
+                ':gid' => $row->gid,
+                ':weight' => $row->weight,
+            )
+        );
+
+        unset($row->params['enabled']);
+        unset($row->params['form_region']);
+
+        $row->params = serialize($row->params);
+        db_query("UPDATE {so_forms_fields} SET params=:params WHERE id=:id", array(
+            ':id' => $row->id,
+            ':params' => $row->params,
+        ));
+    }
+
+    $message[] = "The table 'so_forms_fields_displays' has been populated with default values.";
+    $message[] = "Unused field's params have been deleted";
+
+    //----- Deleting columns
+
+    db_drop_field('so_forms_fields', 'label');
+    db_drop_field('so_forms_fields', 'gid');
+    db_drop_field('so_forms_fields', 'weight');
+
+    $message[] = "Column 'label', 'gid' and 'weight' have been dropped from 'so_forms_fields'";
+
+    return implode('<br />', $message);
+}
+
+/**
+ * Adding table 'so_forms_displays', populating, and cleaning.
+ */
+function so_forms_update_7003() {
+
+    $message = array();
+
+    //----- Adding table
+
+    $so_forms_displays = array(
+        'description' => "Stores forms' params",
+
+        'fields' => array(
+            'sfid' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "Form's id. Primary key",
+                'not null' => false,
+            ),
+
+            'display' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The form's display machine name. Primary key",
+                'not null' => true,
+            ),
+
+            'display_label' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'description' => "The human readable display name",
+                'not null' => true,
+            ),
+
+            'configuration' => array(
+                'type' => 'text',
+                'description' => "Form's display configuration",
+                'not null' => false,
+            ),
+        ),
+
+        'primary key' => array('sfid', 'display'),
+    );
+
+    db_create_table('so_forms_displays', $so_forms_displays);
+
+    $message[] = "The table 'so_forms_displays' has been created.";
+
+    //-----
+
+    $results = db_query("SELECT * FROM {so_forms}");
+
+    while($row = $results->fetchObject()) {
+
+        $row->params = unserialize($row->params);
+
+        $configuration = serialize(array(
+            'title' => $row->params['configuration']['title'],
+            'memorize' => $row->params['configuration']['memorize'],
+            'url_key' => $row->params['configuration']['url_key'],
+            'advanced' => $row->params['configuration']['advanced'],
+            'classes' => $row->params['configuration']['classes'],
+            'buttons' => $row->params['configuration']['buttons'],
+            'redirect' => $row->params['configuration']['redirect'],
+        ));
+
+        unset($row->params['configuration']['title']);
+        unset($row->params['configuration']['memorize']);
+        unset($row->params['configuration']['url_key']);
+        unset($row->params['configuration']['advanced']);
+        unset($row->params['configuration']['classes']);
+        unset($row->params['configuration']['buttons']);
+        unset($row->params['configuration']['redirect']);
+
+        db_query("INSERT INTO {so_forms_displays} SET
+            sfid=:sfid,
+            display=:display,
+            display_label=:label,
+            configuration=:configuration",
+            array(
+                ':sfid' => $row->sfid,
+                ':display' => 'default',
+                ':label' => "Default",
+                ':configuration' => $configuration,
+            )
+        );
+
+        $row->params = serialize($row->params);
+
+        db_query("UPDATE {so_forms} SET params=:params WHERE sfid=:sfid", array(
+            ':sfid' => $row->sfid,
+            ':params' => $row->params,
+        ));
+    }
+
+    $message[] = "The table 'so_forms_displays' has been populated with default values.";
+    $message[] = "Unused form's params have been deleted";
+
+    return implode('<br />', $message);
+}
+
+/**
+ * Initialization of new parameter 'include_paths'.
+ * (for forms and for fields)
+ */
+function so_forms_update_7004() {
+
+    $results = db_query("SELECT * FROM {so_forms}");
+
+    while($row = $results->fetchObject()) {
+        $row->params = unserialize($row->params);
+
+        if(array_key_exists('include_paths', $row->params['configuration'])) {continue;}
+
+        $row->params['configuration']['include_paths'] = array();
+        $row->params = serialize($row->params);
+
+        drupal_write_record('so_forms', $row, 'sfid');
+    }
+
+    $results = db_query("SELECT * FROM {so_forms_fields}");
+
+    while($row = $results->fetchObject()) {
+        $row->params = unserialize($row->params);
+
+        if(array_key_exists('include_paths', $row->params)) {continue;}
+
+        $row->params['include_paths'] = array();
+        $row->params = serialize($row->params);
+
+        drupal_write_record('so_forms_fields', $row, 'id');
+    }
+
+    return "New param has been set.";
+}

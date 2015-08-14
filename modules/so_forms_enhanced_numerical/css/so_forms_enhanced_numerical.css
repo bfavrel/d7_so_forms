@@ -1,0 +1,12 @@
+
+.so_forms_numerical_slider .slider_limit {
+    font-size: 6pt;
+}
+
+.so_forms_numerical_slider .slider_min {
+    float: left;
+}
+
+.so_forms_numerical_slider .slider_max {
+    float: right;
+}

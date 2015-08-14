@@ -1,0 +1,17 @@
+name = "Forms!"
+description = "User interfaces building API"
+package = "Saison d'Or"
+core = "7.x"
+version = "7.x-1.0"
+
+files[] = plugins/fields/FormFieldAbstract.class.php
+files[] = plugins/fields/FormFieldDates.class.php
+files[] = plugins/fields/FormFieldNumerical.class.php
+files[] = plugins/fields/FormFieldText.class.php
+files[] = plugins/widgets/FormWidgetAbstract.class.php
+files[] = plugins/widgets/FormWidgetCheckboxes.class.php
+files[] = plugins/widgets/FormWidgetDatefields.class.php
+files[] = plugins/widgets/FormWidgetOnOff.class.php
+files[] = plugins/widgets/FormWidgetRadios.class.php
+files[] = plugins/widgets/FormWidgetSelect.class.php
+files[] = plugins/widgets/FormWidgetTextfield.class.php

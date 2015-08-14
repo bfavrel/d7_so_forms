@@ -1,0 +1,650 @@
+# $Id$
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  so_forms.admin.inc: n/a
+#  plugins/widgets/FormWidgetCheckboxes.class.php: n/a
+#  so_forms.module: n/a
+#  so_forms.install: n/a
+#  so_forms.info: n/a
+#  modules/so_forms_enhanced_numerical/so_forms_enhanced_numerical.info: n/a
+#  modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php: n/a
+#  plugins/fields/FormFieldDates.class.php: n/a
+#  plugins/fields/FormFieldNumerical.class.php: n/a
+#  plugins/fields/FormFieldText.class.php: n/a
+#  plugins/widgets/FormWidgetOnOff.class.php: n/a
+#  plugins/widgets/FormWidgetDatefields.class.php: n/a
+#  plugins/widgets/FormWidgetRadios.class.php: n/a
+#  plugins/widgets/FormWidgetSelect.class.php: n/a
+#  plugins/widgets/FormWidgetTextfield.class.php: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2015-05-26 10:50+0200\n"
+"PO-Revision-Date: 2015-05-26 10:52+0100\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: French <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: so_forms.admin.inc:108
+msgid "Group"
+msgstr "Groupe"
+
+#: so_forms.admin.inc:112;171
+msgid "configure"
+msgstr "configurer"
+
+#: so_forms.admin.inc:115;177
+msgid "delete"
+msgstr "supprimer"
+
+#: so_forms.admin.inc:156
+msgid "Original field : !field_name"
+msgstr "Champ original : !field_name"
+
+#: so_forms.admin.inc:196
+msgid "Form parameters for display '@display'"
+msgstr "Paramètres du formulaire pour l'affichage '@display'"
+
+#: so_forms.admin.inc:207
+msgid "Save configuration"
+msgstr "Enregistrer la configuration"
+
+#: so_forms.admin.inc:218
+msgid "Basic parameters"
+msgstr "Paramètres de base"
+
+#: so_forms.admin.inc:222
+msgid "Form's title"
+msgstr "Titre du formulaire"
+
+#: so_forms.admin.inc:230
+msgid "Submit button's label"
+msgstr "Label du bouton de soumission"
+
+#: so_forms.admin.inc:231;239
+msgid ""
+"In english (it will be automatically translated at display).<br />No label = "
+"no button."
+msgstr ""
+"En anglais (il sera automatiquement traduit à l'affichage).<br />Pas de "
+"label = pas de bouton."
+
+#: so_forms.admin.inc:238
+msgid "Reset button's label"
+msgstr "Label du bouton de réinitialisation"
+
+#: so_forms.admin.inc:250
+msgid "Advanced parameters"
+msgstr "Paramètres avancés"
+
+#: so_forms.admin.inc:256
+msgid "Store values in user's session ?"
+msgstr "Stocker les valeurs dans la session utilisateur ?"
+
+#: so_forms.admin.inc:262
+msgid "Store values in database and provide an URL key ?"
+msgstr "Stocker les valeurs en base de données et fournir une clé d'URL ?"
+
+#: so_forms.admin.inc:268
+msgid "Use the 'advanced' form region ?"
+msgstr "Utiliser la région 'avancé' ?"
+
+#: so_forms.admin.inc:274
+msgid "Redirection path"
+msgstr "Chemin de redirection"
+
+#: so_forms.admin.inc:275
+msgid ""
+"Valid Drupal path with possibly URL GET parameters.<br />If this parameter "
+"is set, the redirect callback set for this form won't be called !"
+msgstr ""
+"Chemin Drupal valid avec éventuellement des parmètres d'URL.<br />Si ce "
+"paramètre est renseigné, le callback de redirection ne sera pas appelé !"
+
+#: so_forms.admin.inc:282
+msgid "Classes to apply to the form"
+msgstr "Classes à appliquer au formulaire"
+
+#: so_forms.admin.inc:283
+msgid "Separated by commas."
+msgstr "Séparées par une virgule."
+
+#: so_forms.admin.inc:290
+msgid "Add an existing display"
+msgstr "Ajouter un affichage existant"
+
+#: so_forms.admin.inc:291
+msgid "Add a new display"
+msgstr "Ajouter un nouvel affichage"
+
+#: so_forms.admin.inc:295
+msgid "Delete current display"
+msgstr "Supprimer l'affichage courant"
+
+#: so_forms.admin.inc:319
+msgid "nothing"
+msgstr "rien"
+
+#: so_forms.admin.inc:328
+msgid "Displays"
+msgstr "Affichages"
+
+#: so_forms.admin.inc:334
+msgid "Operation"
+msgstr "Opération"
+
+#: so_forms.admin.inc:348
+msgid "Use existing"
+msgstr "Utiliser l'affichage"
+
+#: so_forms.admin.inc:354;391
+msgid "Copy form's configuration from"
+msgstr "Copier la configuration du formulaire à partir de l'affichage"
+
+#: so_forms.admin.inc:360;397
+msgid "Copy field's configuration from"
+msgstr "Copier la configuration des champs à partir de l'affichage"
+
+#: so_forms.admin.inc:375;497
+msgid "Label"
+msgstr "Étiquette"
+
+#: so_forms.admin.inc:376
+msgid "translatable"
+msgstr "traductible"
+
+#: so_forms.admin.inc:412
+msgid ""
+"All parameters associated with this display will be deleted with no "
+"confirmation !"
+msgstr ""
+"Tous les paramètres associés à cet affichage seront supprimés sans autre "
+"demande de confirmation !"
+
+#: so_forms.admin.inc:419
+msgid "Proceed"
+msgstr "Procéder"
+
+#: so_forms.admin.inc:432
+msgid "Informations"
+msgstr "Informations"
+
+#: so_forms.admin.inc:439
+msgid "Form's ID"
+msgstr ""
+
+#: so_forms.admin.inc:440
+msgid "Form's secured ID"
+msgstr ""
+
+#: so_forms.admin.inc:441
+msgid "Callbacks"
+msgstr ""
+
+#: so_forms.admin.inc:443;444;445
+msgid "none"
+msgstr "aucun(e)"
+
+#: so_forms.admin.inc:453
+msgid "The resulting form can be displayed using"
+msgstr "Le formulaire résultant peut être affiché en utilisant"
+
+#: so_forms.admin.inc:464
+msgid "Templates"
+msgstr "Templates"
+
+#: so_forms.admin.inc:483;929;978
+msgid "Save"
+msgstr "Enregistrer"
+
+#: so_forms.admin.inc:491
+msgid "-- Select a field --"
+msgstr "-- Sélectionner un champ --"
+
+#: so_forms.admin.inc:498
+msgid "If empty, field label will be used."
+msgstr "Si vide, le label du champ sera utilisé."
+
+#: so_forms.admin.inc:504;1268
+msgid "Field"
+msgstr "Champ"
+
+#: so_forms.admin.inc:528;566
+msgid "Field type"
+msgstr "Type de champ"
+
+#: so_forms.admin.inc:529
+msgid "Select a field"
+msgstr "Sélectionner un champ"
+
+#: so_forms.admin.inc:535
+msgid "Add a field"
+msgstr "Ajouter un champ"
+
+#: so_forms.admin.inc:602
+msgid "Field values"
+msgstr "Valeurs du champ"
+
+#: so_forms.admin.inc:615
+msgid "No value available"
+msgstr "Aucune valeur disponible"
+
+#: so_forms.admin.inc:628
+msgid "Title"
+msgstr "Titre"
+
+#: so_forms.admin.inc:633
+msgid "Add a group"
+msgstr "Ajouter un groupe"
+
+#: so_forms.admin.inc:643;935;983
+msgid "Back"
+msgstr "Retour"
+
+#: so_forms.admin.inc:657
+msgid "You have to select a field."
+msgstr "Vous devez sélectionner un champ."
+
+#: so_forms.admin.inc:660
+msgid "You have to select a field type."
+msgstr "Vous devez sélectionner un type de champ."
+
+#: so_forms.admin.inc:664
+msgid "You have to set a title for this group."
+msgstr "Vous devez entrer un titre pour ce groupe"
+
+#: so_forms.admin.inc:760
+msgid "Field's configuration has been saved"
+msgstr "La configuration du champ a été sauvegardée."
+
+#: so_forms.admin.inc:787
+msgid "Form's configuration has been saved"
+msgstr "La configuration du formulaire a été sauvegardée"
+
+#: so_forms.admin.inc:874
+msgid "Display has been set."
+msgstr "L'affichage a été mis en place."
+
+#: so_forms.admin.inc:888
+msgid "Display has been deleted."
+msgstr "L'affichage a été supprimé."
+
+#: so_forms.admin.inc:920
+msgid "Field '@field' configuration"
+msgstr "Configuration du champ '@field'"
+
+#: so_forms.admin.inc:971
+msgid "Display the group label"
+msgstr "Afficher le titre du groupe"
+
+#: so_forms.admin.inc:998
+msgid "Group's' configuration has been saved."
+msgstr "La configuration du groupe a été sauvegardée."
+
+#: so_forms.admin.inc:1164
+msgid "Advanced form"
+msgstr "Formulaire avancé"
+
+#: so_forms.admin.inc:1248
+msgid "Normal form"
+msgstr "Formulaire normal"
+
+#: so_forms.admin.inc:1269
+msgid "Type"
+msgstr "Type"
+
+#: so_forms.admin.inc:1270
+msgid "Enabled"
+msgstr "Activé"
+
+#: so_forms.admin.inc:1271
+#: plugins/widgets/FormWidgetCheckboxes.class.php:576;668
+msgid "Weight"
+msgstr "Poids"
+
+#: so_forms.admin.inc:1272
+msgid "Operations"
+msgstr "Actions"
+
+#: so_forms.admin.inc:1311
+msgid "Add field"
+msgstr "Ajouter un champ"
+
+#: so_forms.admin.inc:1327
+msgid "Add group"
+msgstr "Ajouter un groupe"
+
+#: so_forms.module:634
+msgid "Configure module"
+msgstr "Configurer le module"
+
+#: so_forms.module:635
+msgid "Edit module's settings."
+msgstr "Editer les paramètres du module."
+
+#: so_forms.install:309
+msgid "The table 'so_forms_url_params' has been created"
+msgstr ""
+
+#: so_forms.info:0
+msgid "Forms!"
+msgstr "Forms!"
+
+#: so_forms.info:0
+msgid "User interfaces building API"
+msgstr "API de développement d'interfaces-utilisateur"
+
+#: so_forms.info:0
+#: modules/so_forms_enhanced_numerical/so_forms_enhanced_numerical.info:0
+msgid "Saison d'Or"
+msgstr "Saison d'Or"
+
+#: modules/so_forms_enhanced_numerical/so_forms_enhanced_numerical.info:0
+msgid "Forms! Enhanced numerical widgets"
+msgstr "Forms! Widgets numériques améliorés"
+
+#: modules/so_forms_enhanced_numerical/so_forms_enhanced_numerical.info:0
+msgid "Provide a slider widget to Forms! (and perhaps further a knob one)"
+msgstr ""
+"Fourni un widget de type glissière (et, peut-être, plus-tard, bouton rotatif)"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:18
+msgid "Slider type"
+msgstr "Type de glissière"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:20
+msgid "Exact number (ex : \"<strong>X</strong> people\")"
+msgstr "Valeur exacte (ex : \"<strong>X</strong> personnes\")"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:21
+msgid "Maximum number (ex : \"from 0 to <strong>X</strong>€\")"
+msgstr "Valeur maximum (ex : \"de 0 à <strong>X</strong>€\")"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:22
+msgid "Absolute maximum number (ex : \"<strong>X</strong>€ and less\")"
+msgstr "Valeur maximum absolue (ex : \"<strong>X</strong>€ et moins\")"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:23
+msgid "Minimum number (ex : \"from <strong>X</strong> to 200€\")"
+msgstr "Valeur minimum (ex : \"de <strong>X</strong> à 200€\")"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:24
+msgid "Absolute minimum number (ex : \"<strong>X</strong>€ and more\")"
+msgstr "Valeur minimum absolue (ex : \"<strong>X</strong>€ et plus\")"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:25
+msgid ""
+"Numbers range (ex : \"from <strong>X</strong> to <strong>Y</strong> days\")"
+msgstr ""
+"Plage de valeurs (ex : \"de <strong>X</strong> à <strong>Y</strong> jours\")"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:33
+msgid "Minimum value"
+msgstr "Valeur limite minimum"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:34
+msgid "Minimum available value : '@val'"
+msgstr "Valeur minimum disponible : '@val'"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:44
+msgid "Maximum value"
+msgstr "Valeur limite maximum"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:45
+msgid "Maximum available value : '@val'"
+msgstr "Valeur maximum disponible : '@val'"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:55
+msgid "Display the limits"
+msgstr "Afficher les valeurs limites"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:62
+msgid "Interval between two values"
+msgstr "Intervalle entre deux valeurs"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:63
+msgid "Can be decimal"
+msgstr "Peut être décimal"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:64
+msgid "unit"
+msgstr "unité"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:72
+msgid "Value label"
+msgstr "Étiquette de la valeur"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:73
+msgid ""
+"Ex : \"Number of people\" will be displayed as this : \"<strong>Number of "
+"people</strong> : 3 people\""
+msgstr ""
+"Ex : \"Nombre de personnes\" sera affiché : \"<strong>Nombre de personnes</"
+"strong> : 3 personnes\""
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:80
+msgid "Value unit"
+msgstr "Unité de la valeur"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:81
+msgid ""
+"Ex : \" bedrooms\" will be displayed as this : \"Minimum number of "
+"bedrooms : 3 <strong>bedrooms</strong>\""
+msgstr ""
+"Ex : \" chambres\" sera affiché : \"Nombre minimum de chambres : 3 "
+"<strong>chambres</strong>\""
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:83
+msgid "You can use a space to separate the unit from the number."
+msgstr "Vous pouvez utiliser un espace pour séparer l'unité du nombre."
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:131
+msgid "from @slider_min to #1"
+msgstr "de @slider_min à #1"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:139
+msgid "#1@unit and less"
+msgstr "#1@unit et moins"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:147
+msgid "from #1 to @slider_max"
+msgstr "de #1 à @slider_max"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:155
+msgid "#1@unit and more"
+msgstr "#1@unit et plus"
+
+#: modules/so_forms_enhanced_numerical/widgets/FormWidgetSlider.class.php:164
+msgid "from #1 to #2"
+msgstr "de #1 à #2"
+
+#: plugins/fields/FormFieldDates.class.php:43
+msgid "Use field label"
+msgstr "Afficher l'étiquette du champ"
+
+#: plugins/fields/FormFieldNumerical.class.php:40
+msgid "Field prefix"
+msgstr "Préfixe du champ"
+
+#: plugins/fields/FormFieldNumerical.class.php:48
+msgid "Field suffix"
+msgstr "Suffixe du champ"
+
+#: plugins/fields/FormFieldText.class.php:64
+msgid "Options creation method"
+msgstr "Méthode de création des options"
+
+#: plugins/fields/FormFieldText.class.php:67
+msgid ""
+"Additive method : select predefined options to use among existing values"
+msgstr ""
+"Méthode additive : sélectionner des options prédéfinies parmi les valeurs "
+"existantes"
+
+#: plugins/fields/FormFieldText.class.php:68
+msgid "Substractive method : unselect options to not use among existing values"
+msgstr ""
+"Méthode soustractive : désélectionner des options à ne pas utiliser parmi "
+"les valeurs existantes"
+
+#: plugins/fields/FormFieldText.class.php:69
+msgid "Build predefined options from existing values (unique usage of values)"
+msgstr ""
+"Construire des options prédéfinies à partir des valeurs existantes (usage "
+"unique de chaque valeur)"
+
+#: plugins/fields/FormFieldText.class.php:70
+msgid ""
+"Build predefined options from existing values (multiple usage of values)"
+msgstr ""
+"Construire des options prédéfinies à partir des valeurs existantes (usage "
+"multiple des valeurs)"
+
+#: plugins/fields/FormFieldText.class.php:73
+msgid "Values will be updated after save"
+msgstr "Les valeurs seront mises à jour après sauvegarde"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:14
+msgid "Display the check boxes group label"
+msgstr "Afficher l'étiquette du groupe de cases à cocher"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:24;106;169;267
+msgid "Check boxes options"
+msgstr "Options des cases à cocher"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:25
+msgid "Select values to use as predefined options"
+msgstr "Sélectionner les valeurs à utiliser comme options prédéfinies"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:107
+msgid "Deselect values to discard"
+msgstr "Désélectionner les valeurs à écarter"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:159
+msgid "currently unavailable value"
+msgstr "valeur actuellement indisponible"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:229;321
+msgid "Delete"
+msgstr "Supprimer"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:241;332
+msgid "If empty, checked value will be used."
+msgstr "Si non rempli, la valeur sélectionnée sera utilisée"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:242;333;575;615;667
+msgid "Exposed value"
+msgstr "Valeur exposée"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:248;339
+#: plugins/widgets/FormWidgetOnOff.class.php:49
+msgid "Available values"
+msgstr "Valeurs disponibles"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:256;347
+msgid "Add"
+msgstr "Ajouter"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:365
+#: plugins/widgets/FormWidgetOnOff.class.php:61
+msgid "You have to select at least one value"
+msgstr "Vous devez sélectionner au moins une valeur"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:381
+msgid "Field has no option anymore."
+msgstr "Le champ n'a plus d'options à proposer"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:574;614
+msgid "Exposed"
+msgstr "Exposé"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:577
+msgid "Value"
+msgstr "Valeur"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:631
+msgid "Add an option"
+msgstr "Ajouter une option"
+
+#: plugins/widgets/FormWidgetCheckboxes.class.php:669
+msgid "Values"
+msgstr "Valeurs"
+
+#: plugins/widgets/FormWidgetDatefields.class.php:13
+msgid "Help text"
+msgstr "Texte d'aide"
+
+#: plugins/widgets/FormWidgetDatefields.class.php:21
+msgid "Field 'start' label"
+msgstr "Etiquette du champ 'debut'"
+
+#: plugins/widgets/FormWidgetDatefields.class.php:22
+msgid "From"
+msgstr "De"
+
+#: plugins/widgets/FormWidgetDatefields.class.php:30
+msgid "Field 'end' label"
+msgstr "Etiquette du champ 'fin'"
+
+#: plugins/widgets/FormWidgetDatefields.class.php:31
+msgid "To"
+msgstr "À"
+
+#: plugins/widgets/FormWidgetOnOff.class.php:14
+msgid "Values to use when the box is checked"
+msgstr "Valeurs correspondantes à la case à cocher"
+
+#: plugins/widgets/FormWidgetRadios.class.php:12
+msgid "Display the label of the radios buttons group"
+msgstr "Afficher l'étiquette du groupe de boutons radios"
+
+#: plugins/widgets/FormWidgetSelect.class.php:13
+msgid "Add a 'select all' option"
+msgstr "Ajouter une option de type 'tout sélectionner'"
+
+#: plugins/widgets/FormWidgetSelect.class.php:16
+msgid "None"
+msgstr "Aucun(e)"
+
+#: plugins/widgets/FormWidgetSelect.class.php:17;56
+msgid "Indifferent"
+msgstr "Indifférent"
+
+#: plugins/widgets/FormWidgetSelect.class.php:18;63
+msgid "All (male)"
+msgstr "Tous"
+
+#: plugins/widgets/FormWidgetSelect.class.php:19;72
+msgid "All (female)"
+msgstr "Toutes"
+
+#: plugins/widgets/FormWidgetSelect.class.php:26
+msgid "Distplay the label of the select box"
+msgstr "Afficher l'étiquette de la liste déroulante"
+
+#: plugins/widgets/FormWidgetSelect.class.php:29
+msgid "Select box options"
+msgstr "Options de la liste déroulante"
+
+#: plugins/widgets/FormWidgetTextfield.class.php:14
+msgid "Label's style"
+msgstr "Style du titre du champ"
+
+#: plugins/widgets/FormWidgetTextfield.class.php:16
+msgid "Outside field"
+msgstr "En dehors du champ"
+
+#: plugins/widgets/FormWidgetTextfield.class.php:17
+msgid "Inside field"
+msgstr "Dans le champ"
+
+#: plugins/widgets/FormWidgetTextfield.class.php:18
+msgid "No label"
+msgstr "Pas de titre"

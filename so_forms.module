@@ -1,0 +1,1599 @@
+<?php
+
+/**************************
+ * ----- PUBLIC API ----- *
+ **************************/
+
+/**
+ * Creates and initialize a form
+ * IMPORTANT : never use ":" in $id ! Module already uses it as separator.
+ *
+ * About 'memorize' : if set to true, user inputs will be stored in session, and can be retrieved with so_form_get_user_inputs()
+ * Else if set to false, calling module is responsible for storing user raw inputs
+ * and for providing them again with help of 'populate' callback, as well as process compiled user inputs.
+ *
+ * About 'buttons' : if no label is provided for a button, this button won't be displayed. Labels will be localized later.
+ *
+ * About 'perms' : if one or whole perms are missing, 'false' will be assumed, hence nobody exept admin will be able to edit and/or see the form.
+ *
+ * About 'callbacks' : functions have to be accessible in Drupal's scope, like hooks. @TODO : add file include params.
+ *
+ * About 'callbacks[process]' : module's custom user inputs processing callback.
+ * Even if it's provided, data can be nevertheless stored in session, if the 'memorize' parameter in set to 'true' (in this case 'populate'
+ * can also be used to override these stored values).
+ * This callback is called just before memorization in session. It hasn't to return anything at all.
+ * This function will be called with these arguments : $id, $user_inputs, &$user_raw_inputs $stored_inputs (session) and $data (provided
+ * to so_form() or to element with '#data' parameter).
+ * @see so_form_get_user_inputs() for user inputs format
+ * NOTA : when Forms! is used as element, the parent form can use its own submit callback for processing user inputs.
+ *
+ * About 'callbacks[populate]' : this callback is used to populate the form.
+ * Function will be called with these arguments : $id (internal module form id), $data (provided
+ * to so_form() or to element with '#data' parameter).
+ * Function has to return the user raw inputs received (and stored by itself) by the 'process' callback.
+ * Populate callback is compatible with Forms! stored inputs. Values he provides have priority on stored ones.
+ * That give a chance to modules to override displayed values.
+ *
+ * About 'callbacks[redirect]' : if provided, this function will be called with these arguments :
+ * $id and $user_inputs and $data (provided to hook_so_form() or to element using '#data' parameter).
+ * This function should return a path which will be processed by drupal_goto().
+ * (It could perform itself the goto(), since at this point, submission process is over, but it wouldn't be very clean)
+ * @see so_form_get_user_inputs() for user inputs format
+ *
+ * @param string $module : module name
+ * @param string/int $id : an unique form id (in the module's context) in machine format.
+ * @param array $configuration :
+ *              - name : (string) : human readable name. Displayed as page title in admin form.
+ *              - memorize : (boolean) false : module must store user input in session.
+ *              - url_key : (boolean) false : module must store user inputs in database and provides key in url after submission.
+ *              - advanced : (boolean) false : form has an 'advanced' region
+ *              - api_only : (boolean) false : fields can be added/removed only through API. Form 'Field add' unavailable.
+ *              - no_groups : (boolean) false : fields can't be gathered in fieldset. Form 'Group add' unavailable.
+ *              - back_path : (string) null : add a 'back' link to the form, with this path set.
+ *              - classes : (string) null : one or more classes names separated by comma which will be applied to the 'form' tag.
+ *              - include_paths : (array) : non-associative arrays of scripts to include before execute callbacks :
+ *                          - module : (string) : used to get base path of the script
+ *                          - script : (string) script name without extension (use of modules module_load_include('inc', ...))
+ *              - buttons : array :
+ *                          - submit : (string) submit button label,
+ *                          - reset : (string) reset button label
+ *              - perms : array :
+ *                          - configure : (string) permission for editing the form
+ *                          - display : (string) permission for displaying and using the form
+ *              - callbacks : array :
+ *                          - process : (string) optional : user inputs processing function name
+ *                          - populate : (string) optional : name of the fonction called to populate the form before displaying it
+ *                          - redirect : (string) optional : name of the function which redirect the user after form submission
+ *
+ * @return array : public informations @see so_forms_infos()
+ *
+ * @todo : forms displays definitions using the API.
+ */
+function so_forms_create($module, $id, $configuration) {
+
+    $default_config = so_forms_get_default_config();
+
+    $form_record = new stdClass();
+
+    $form_record->sfid = $module . ':' . $id;
+    $form_record->secured_sfid = md5(uniqid($form_record->sfid) . 'g.42dégdç95b#n3$j*lfbj'); // sfid public (AHAH, etc.)
+
+    $form_record_params = array_merge($default_config['form_params'], array_intersect_key($configuration, $default_config['form_params']));
+
+    $form_record->name = $form_record_params['name'];
+    unset($form_record_params['name']);
+
+    $form_record->params = serialize(array(
+        'configuration' => $form_record_params,
+        'definitions_cache' => array(),
+    ));
+
+    drupal_write_record('so_forms', $form_record);
+
+    $display_configuration = array_merge($default_config['display_params'], array_intersect_key($configuration, $default_config['display_params']));
+
+    // TODO : @see function's doc
+    $display_record = array(
+        'sfid' => $module . ':' . $id,
+        'display' => 'default',
+        'display_label' => "Default",
+        'configuration' => serialize($display_configuration),
+    );
+
+    drupal_write_record('so_forms_displays', $display_record);
+
+    return so_forms_infos($module, $id);
+}
+
+/**
+ * Provide the name and the secured sfid of the form.
+ * '$module' and '$id' parameters should never be exposed on website, under penalty of compromise security.
+ * You MUST use the secured sfid for all public operations like AHAH or AJAX callbacks instead.
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ *
+ * @return array :
+ *      - name
+ *      - secured_sfid
+ */
+function so_forms_infos($module, $id) {
+    $form_infos = so_forms_load_form_params(so_forms_get_sfid($module, $id));
+
+    return array(
+        'name' => $form_infos->name,
+        'secured_sfid' => $form_infos->secured_sfid
+    );
+}
+
+/**
+ * Provides a list of available displays for the given form
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ *
+ * @return array : non-translated display labels indexed by machine name
+ */
+function so_forms_displays($module, $id) {
+    $sfid = so_forms_get_sfid($module, $id);
+
+    $results = db_query("SELECT DISTINCT display, display_label FROM {so_forms_displays} WHERE sfid=? ORDER BY display_label ASC", array($sfid));
+
+    $displays = array();
+
+    while($row = $results->fetchObject()) {
+        $displays[$row->display] = $row->display_label;
+    }
+
+    return $displays;
+}
+
+/**
+ * Delete a form
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ */
+function so_forms_destroy($module, $id) {
+
+    $sfid = so_forms_get_sfid($module, $id);
+
+    db_query("DELETE FROM {so_forms} WHERE sfid='" . $sfid . "'");
+
+    db_query("DELETE FROM {so_forms_displays} WHERE sfid='" . $sfid . "'");
+
+    $results = db_query("SELECT id FROM {so_forms_fields} WHERE sfid='" . $sfid . "'");
+
+    while($row = $results->fetchObject()) {
+        db_query("DELETE FROM {so_forms_fields_displays} WHERE fid='" . $row->id . "'");
+    }
+
+    db_query("DELETE FROM {so_forms_fields} WHERE sfid='" . $sfid . "'");
+
+    db_query("DELETE FROM {so_forms_url_params} WHERE sfid='" . $sfid . "'");
+}
+
+/**
+ * Provides a builded form administration form.
+ * Intended to be included as a local task (@see so_listings:so_listings_menu() for usage example)
+ * NOTA : the menu item must use 'so_forms.admin.inc' for 'file' entry of the item.
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ * @param string $display : display's machine name.
+ * @param string $lang
+ *
+ * @return string : the rendered form
+ */
+function so_forms_configure($module, $id, $display = 'default', $lang = null) {
+
+    module_load_include('inc', 'so_forms', 'so_forms.admin');
+
+    return drupal_get_form('so_forms_configure_form', $module, $id, $display, $lang);
+}
+
+/**
+ * Provides a form administration form array.
+ * Intended to be used as a menu callback (@see prestataires_dispos.admin.inc:prestataires_dispos_settings_form() for usage example)
+ *
+ * @param type $form
+ * @param type $form_state
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ * @param string $display : display's machine name.
+ * @param string $lang
+ *
+ * @return array : the form
+ */
+function so_forms_configure_form($form, &$form_state, $module, $id, $display = 'default', $lang = null) {
+
+    module_load_include('inc', 'so_forms', 'so_forms.admin');
+
+    return so_forms_fields_overview($form, $form_state, $module, $id, $display, $lang);
+}
+
+/**
+ * Add a field
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ * @param array $field :
+ *      - name : (string) : field_name provided by calling module
+ *      - label : (string) : human readable name. No t().
+ *      - type : (string/string array) : existing type(s) or custom type(s) which have to be defined by the module, with hook_so_forms()
+ *      - widget : (string) : a valid so_form widget name
+ *      - context : (int/string) optional : the context which the field is provided in
+ *      - include_paths : (array) : non-associative arrays of scripts to include before execute callbacks :
+ *                - module : (string) : used to get base path of the script
+ *                - script : (string) script name without extension (use of modules module_load_include('inc', ...))
+ *      - callbacks : (array) : various functions name used during field lifetime
+ *      - data : (mixed) : informations owned by the module and passed back to the various callbacks.
+ *
+ * @return string : the secured_id of the field
+ *
+ * @see so_forms.api.php:hook_so_forms() for further documentation
+ */
+function so_forms_add_field($module, $id, $field) {
+
+    $sfid = so_forms_get_sfid($module, $id);
+
+    $form_params = so_forms_load_form_params($sfid);
+
+    $form_field = array(
+        'id' => null,
+        'sfid' => $sfid,
+        'label' => $field['label'],
+        'field' => $field['module'] . ':' . $field['name'] . ':' . (!empty($field['context']) ? $field['context'] : $id),
+        'field_type' => $field['type'],
+        'widget' => $field['widget'],
+        'field_values' => array(),
+        'params' => array(
+            'include_paths' => $field['include_paths'],
+            'callbacks' => $field['callbacks'],
+            'data' => $field['data'],
+        ),
+
+        'enabled' => false,
+        'form_region' => $form_params->configuration['advanced'] == true ? 'advanced' : 'normal',
+        'gid' => '',
+        'weight' => 50,
+    );
+
+    $stored_field = so_forms_store_field($form_field, 'default');
+
+    return $stored_field->secured_id;
+}
+
+/**
+ * Remove a field
+ *
+ * @param string $secured_id
+ */
+function so_forms_remove_field($secured_id) {
+    db_query("DELETE FROM {so_forms_fields} WHERE secured_id=?", array($secured_id));
+}
+
+/**
+ * Provide the fully loaded and themed form
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ * @param string $display : which form's display/configuration to use.
+ * @param mixed $data : additional data to pass to callbacks
+ *
+ * @return string the themed form
+ */
+function so_form($module, $id, $display = 'default', $data = null) {
+    static $index = 0;
+
+    global $language;
+    $lang = $language->language;
+
+    return drupal_get_form('so_forms_build_form_' . $index++, $module, $id, $display, $lang, array(), $data);
+}
+
+/**
+ * Check if new user data are available (new submission) since last call to so_forms_get_user_inputs()
+ * If form was reseted, it returns 'null' so '===' must be used if accuracy is needed.
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ *
+ * @return boolean/null
+ */
+function so_forms_check_user_inputs_update($module, $id) {
+    $sfid = so_forms_get_sfid($module, $id);
+
+    return $_SESSION['so_forms'][$sfid]['updated'];
+}
+
+/**
+ * Lets caller know if the current page is a submission for a given form.
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ */
+function so_forms_submited_for($module, $id) {
+    $sec_sfid = so_forms_get_secured_sfid($module, $id);
+
+    if(empty($sec_sfid)) {return false;}
+
+    return $_POST['so_form_submited_for'] == $sec_sfid;
+}
+
+/**
+ * Compile user raw inputs.
+ *
+ * $raw_values is an associative array indexed by fields' secured ids. Each entry contains either a string,
+ * or, for multiples widgets, an array.
+ *
+ * The function builds and returns an associative array indexed by fields's secured ids,
+ * which each entry is an array containing all fields' informations, including 'configuration' array.
+ * The values entry contain the values processed by the classes (values have been filtered, grouped, etc.)
+ * The widgets hashes have been replaced with their real values, so they can be easily parsed and processed
+ * by fields providers.
+ *
+ * The function builds also $user_raw_inputs, which is an associative array indexed by REAL fields' id. No more filtering has occured.
+ * These data are just intended to "feed" the form when displayed.
+ *
+ * @param array $raw_values
+ * @param string $lang
+ * @param array &$user_raw_inputs
+ *
+ * @return array
+ */
+function so_forms_compile_user_raw_inputs($raw_values, $lang, &$user_raw_inputs = array()) {
+
+    if(empty($raw_values)) {return array();}
+
+    $compiled_user_inputs = array();
+
+    foreach($raw_values as $field_id => $input) {
+
+        $stored_field = so_forms_get_stored_field($field_id);
+        $field_id = $stored_field->id;
+
+        if(empty($field_id)) {continue;}
+
+        $field_instance = so_forms_get_field_instance($field_id, 'default', $lang, true);
+
+        $raw_input = (array)$input;
+        $compiled_input = $field_instance->compileUserInputs($raw_input);
+
+        // si ce champ n'a pas été renseigné, est-il utile d'en informer le propriétaire ? Que ferait-il de cette information ?
+        // cette info sera davantage utile à la future hypothétique mécanique de validation des champs
+        if(count(array_filter($compiled_input['values'])) > 0) {
+
+            $compiled_user_inputs[$field_instance->getFieldIdentifier()] = $compiled_input;
+            $user_raw_inputs[$field_id] = $raw_input;
+        }
+    }
+
+    return $compiled_user_inputs;
+}
+
+/**
+ * Retrieve stored user inputs.
+ * Calling this function will reset the 'updated' flag @see so_forms_check_user_inputs_update()
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ * @param boolean $clear if set to true, clear data in session (user raw inputs will be also cleared)
+ *
+ * @return array of :
+ *      [module name]:[field name]:[field context] => array :
+ *              - module_name
+ *              - field_name
+ *              - field_context
+ *              - field_type
+ *              - widget
+ *              - language
+ *              - configuration : (array) module's stored custom configuration
+ *              - values : (array) non-indexed array of raw values (a raw value can be as well a simple value,
+ *                                 than an array of raw values, ex : grouped values of custom checkboxes)
+ */
+function so_forms_get_user_inputs($module, $id, $clear = false) {
+
+    $sfid = so_forms_get_sfid($module, $id);
+
+    $user_inputs = array();
+
+    $stored_values = so_forms_get_data_from_url($sfid);
+
+    if(!empty($stored_values)) {
+        global $language;
+        $user_inputs += so_forms_compile_user_raw_inputs($stored_values, $language->language);
+    }
+
+    $user_inputs += (array)$_SESSION['so_forms'][$sfid]['user_inputs'];
+
+    if($clear == true) {
+        unset($_SESSION['so_forms'][$sfid]);
+    } else {
+        $_SESSION['so_forms'][$sfid]['updated'] = false;
+    }
+
+    return $user_inputs;
+}
+
+/**
+ * Implementation of hook_element_info()
+ *
+ * Defines the 'so_form' element.
+ * This element is intended to embed a form managed by Forms! in another form.
+ *
+ * IMPORTANT 1 : if the element is used as standalone element (in ajax callback, for example),
+ * it has to be passed in so_forms_element_process_callback() prior to call render().
+ *
+ * IMPORTANT 2 : the element insn't submitted automaticaly (even Drupal 7 doesn't permit that).
+ * So the parent form's submit callback is responsible to pass the submitted values to Forms!.
+ * (@see so_forms_submit_element())
+ * It can also not to, and process the values itself (@see so_forms_compile_user_raw_inputs()).
+ * In this case it takes charge of the responsibility to memorize the raw values,
+ * and pass them back with form's callback 'populate'.
+ *
+ * NOTA : when used as element, Forms! doesn't automatically perform any redirection, not even a possibly form's callback one.
+ * For that purpose, parent form has to call 'so_forms_submit_redirect()'
+ */
+function so_forms_element_info() {
+
+    return array(
+        'so_form' => array(
+            '#input' => true,
+            '#tree' => true,
+
+            '#sfid' => array(
+                'module' => null,
+                'id' => null,
+            ),
+
+            '#display' => 'default',
+
+            '#data' => null, // some data caller whishes to pass along the process
+            '#process' => array('so_forms_element_process_callback'),
+            '#theme_wrappers' => array('container'),
+        ),
+    );
+}
+
+/**
+ * Process the 'so_from' element raw values.
+ *
+ * @param array $form_values : the form's root array in $form_state['values']
+ * @param array &$user_raw_inputs
+ * @param mixed $data : data owned by caller (usually, matches element's '#data')
+ *
+ * @return array : the compiled user inputs
+ */
+function so_forms_submit_element($form_values, &$user_raw_inputs = array(), $data = null) {
+
+    $compiled_user_inputs = so_forms_compile_user_raw_inputs($form_values['fields'], $form_values['sf_language'], $user_raw_inputs);
+    so_forms_process_user_inputs($form_values['sfid'], $compiled_user_inputs, $user_raw_inputs, $form_values['display'], $data);
+
+    return $compiled_user_inputs;
+}
+
+/**
+ * Performs a redirect according to configuration of the form.
+ *
+ * @param string $sfid
+ * @param string $display
+ * @param array $user_raw_inputs
+ * @param array $compiled_user_inputs
+ * @param mixed $module_data
+ */
+function so_forms_submit_redirect($sfid, $display = 'default', $user_raw_inputs = array(), $compiled_user_inputs = array(), $module_data = null) {
+
+    $form_params = so_forms_load_form_params($sfid, $display);
+
+    $field_infos = explode(':', $sfid);
+
+    $redirect_path = '';
+    $redirect_arguments = drupal_get_query_parameters();
+
+    if($form_params->configuration['url_key'] == true && !empty($user_raw_inputs)) {
+
+        array_walk($user_raw_inputs, function(&$val){
+            if(is_array($val)) {
+                $val = array_filter($val);
+            }
+        });
+
+        $compressed_raw_inputs = rtrim(strtr(base64_encode(gzdeflate(serialize($user_raw_inputs), 9)), '/+', '-_'), "=");
+
+        $url_key = so_forms_hash($compressed_raw_inputs);
+        $redirect_arguments['sfkey'] = $url_key;
+
+        $existing = db_query("SELECT id FROM {so_forms_url_params} WHERE id=? AND sfid=?", array(
+            $url_key,
+            $sfid,
+        ))->fetchColumn();
+
+        if(!empty($existing)) {
+
+            db_query("UPDATE {so_forms_url_params} SET last_use=?, uses=uses+1 WHERE id=? AND sfid=?", array(
+                time(),
+                $url_key,
+                $sfid,
+            ));
+
+        } else {
+            db_query("INSERT INTO {so_forms_url_params} SET id=?, sfid=?, params=?, last_use=?, uses=1", array(
+                $url_key,
+                $sfid,
+                $compressed_raw_inputs,
+                time(),
+            ));
+        }
+
+    } else {
+        unset($redirect_arguments['sfkey']);
+    }
+
+    if(!empty($form_params->configuration['redirect'])) {
+        $path = explode('?', $form_params->configuration['redirect']);
+
+        if(array_key_exists(1, $path)) {
+            $args = explode('&', $path[1]);
+
+            foreach($args as $arg) {
+                $tmp = explode('=', $arg);
+                $redirect_arguments[$tmp[0]] = $tmp[1];
+            }
+        }
+
+        $redirect_path = $path[0];
+
+    } elseif(!empty($form_params->configuration['callbacks']['redirect'])) {
+
+        $redirect_path = call_user_func($form_params->configuration['callbacks']['redirect'], $field_infos[1], $compiled_user_inputs, $module_data);
+
+    } else {
+
+        $redirect_path = current_path();
+    }
+
+    if(!empty($redirect_path)) {
+        drupal_goto($redirect_path, array('query' => $redirect_arguments));
+    }
+}
+
+/*********************************
+ * ----- END OF PUBLIC API ----- *
+ *********************************/
+
+function so_forms_get_default_config() {
+
+    $default_config = array(
+        'name' => '',
+        'title' => '',
+        'memorize' => false,
+        'url_key' => false,
+        'advanced' => false,
+        'api_only' => false,
+        'no_groups' => false,
+        'back_path' => null,
+        'classes' => '',
+        'buttons' => array('submit' => null, 'reset' => null),
+        'perms' => array('configure' => null, 'display' => null),
+        'include_paths' => array(),
+        'callbacks' => array(
+            'process' => null,
+            'populate' => null,
+            'redirect' => null
+        ),
+    );
+
+    $display_params = array(
+        'title' => null,
+        'memorize' => null,
+        'url_key' => null,
+        'advanced' => null,
+        'classes' => null,
+        'buttons' => null,
+        'redirect' => null,
+    );
+
+    return array(
+        'form_params' => array_diff_key($default_config, $display_params),
+        'display_params' => array_intersect_key($default_config, $display_params),
+    );
+}
+
+/*
+ * Element process callback
+ */
+function so_forms_element_process_callback($element) {
+
+    global $language;
+    $lang = $language->language;
+
+    // passage par &
+    $form_state = array();
+
+    $element = array_merge($element, so_forms_build_form(
+        array(),
+        $form_state,
+        $element['#sfid']['module'],
+        $element['#sfid']['id'],
+        $element['#display'],
+        $lang,
+        (array)$element['#array_parents'],
+        $element['#data']
+    ));
+
+    return $element;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function so_forms_permission() {
+    return array(
+        'administer so forms' => array(
+            'title' => t("Configure module"),
+            'description' => t("Edit module's settings."),
+        ),
+    );
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function so_forms_menu() {
+    $items = array();
+
+    // ----- Configuration form
+
+    $items['admin/so_forms/configure/%/%'] = array( // module / id [/ display / lang]
+        'title' => "",
+        'page callback' => 'so_forms_configure',
+        'page arguments' => array(3, 4), // module / id [/ display / lang]
+        'access callback' => 'so_forms_check_perms',
+        'access arguments' => array('configure', null, 3, 4), // module / id
+        'type' => MENU_CALLBACK,
+        'file' => 'so_forms.admin.inc'
+    );
+
+    // ----- Configuration callbacks
+
+    $items['admin/so_forms/edit_field/%/%'] = array( // sfid / field id /lang (optionel)
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('so_forms_edit_field', 4), // field id  /lang (optionel)
+        'access callback' => 'so_forms_check_perms',
+        'access arguments' => array('configure', 3), // sfid
+        'type' => MENU_CALLBACK,
+        'file' => 'so_forms.admin.inc'
+    );
+    $items['admin/so_forms/edit_group/%/%/%'] = array( // sfid / group id / display
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('so_forms_edit_group', 4, 5), // group id / display
+        'access callback' => 'so_forms_check_perms',
+        'access arguments' => array('configure', 3), // sfid
+        'type' => MENU_CALLBACK,
+        'file' => 'so_forms.admin.inc'
+    );
+    $items['admin/so_forms/delete_field/%/%'] = array( // sfid / field id
+        'page callback' => 'so_forms_delete_field',
+        'page arguments' => array(4), // database id
+        'access callback' => 'so_forms_check_perms',
+        'access arguments' => array('configure', 3), // sfid
+        'type' => MENU_CALLBACK,
+        'file' => 'so_forms.admin.inc'
+    );
+    $items['admin/so_forms/delete_group/%/%'] = array( // sfid / field id
+        'page callback' => 'so_forms_delete_group',
+        'page arguments' => array(4), // database id
+        'access callback' => 'so_forms_check_perms',
+        'access arguments' => array('configure', 3), // sfid
+        'type' => MENU_CALLBACK,
+        'file' => 'so_forms.admin.inc'
+    );
+
+    // ----- Widgets JS callback
+
+    $items['so_forms/js/%/%'] = array(
+        'page callback' => 'so_forms_js_callback',
+        'page arguments' => array(2, 3), // secured_id, op /additional arguments
+        'access callback' => 'so_forms_check_secured_field_perms',
+        'access arguments' => array('display', 2), // secured_id
+        'type' => MENU_CALLBACK,
+        'file' => 'so_forms.admin.inc'
+    );
+
+    return $items;
+}
+
+/**
+ * Checks if current user is granted to perform given operation on the form matching given sfid
+ *
+ * @param string $sfid
+ * @param string $op : 'configure' or 'display'
+ */
+function so_forms_check_perms($op, $sfid, $module = null, $id = null) {
+
+    global $user;
+    if($user->uid == 1) {return true;}
+
+    if(empty($sfid)) {
+        $sfid = so_forms_get_sfid($module, $id);
+    }
+
+    $form_params = so_forms_load_form_params($sfid);
+
+    return empty($form_params->configuration['perms'][$op]) ? false : user_access($form_params->configuration['perms'][$op]);
+}
+
+/**
+ * Checks if current user is granted to perform given operation on the field matching given secured id
+ *
+ * @param string $secured_id
+ * @param string $op : 'configure' or 'display'
+ */
+function so_forms_check_secured_field_perms($secured_id, $op) {
+    global $user;
+    if($user->uid == 1) {return true;}
+
+    $field_infos = so_forms_get_stored_field($secured_id);
+    $form_params = so_forms_load_form_params($field_infos->sfid);
+
+    return empty($form_params->configuration['perms'][$op]) ? false : user_access($form_params->configuration['perms'][$op]);
+}
+
+//\\ Voir si on peut le remettre dans 'admin'.
+/*
+ * Callback for testing machine name of displays.
+ */
+function _so_forms_check_display_name($display) {
+    return (boolean) db_query("SELECT count(*) FROM {so_forms_displays} WHERE display=?", array($display))->fetchColumn();
+}
+
+/**
+ * Implementation of hook_forms().
+ */
+function so_forms_forms($form_id) {
+    $forms = array();
+
+    if(strpos($form_id, 'so_forms_build_form') === 0) {
+        $forms[$form_id]['callback'] = 'so_forms_build_form';
+    }
+
+    return $forms;
+}
+
+/**
+ * Retrieves sfid from database
+ *
+ * @param string $module (or null)
+ * @param string $id
+ *
+ * @return string
+ */
+function so_forms_get_sfid($module, $id) {
+    if($module == null) {
+        return db_query("SELECT sfid FROM {so_forms} WHERE secured_sfid='" . $id . "'")->fetchColumn();
+    } else {
+        return $module . ':' . $id;
+    }
+}
+
+/**
+ * Retrieves secured sfid
+ *
+ * @param string $module
+ * @param string $id
+ *
+ * @return string
+ */
+function so_forms_get_secured_sfid($module, $id) {
+
+    if($module == null) {
+        return $id;
+    }
+
+    $sfid = $module . ':' . $id;
+    return db_query("SELECT secured_sfid FROM {so_forms} WHERE sfid='" . $sfid . "'")->fetchColumn();
+}
+
+/**
+ * Gathers all form fields enabled by modules
+ *
+ * @param string $sfid
+ * @param boolean $from_cache if set to 'true', modules won't be called. Instead, the light database cache is loaded.
+ *
+ * @return array of :
+ *  [module name]:[field name]:[field context] => array :
+ *      - label : (string) human readable name
+ *      - type :  (string array/string) one or more types
+ *      - values_callback : (string) optional function name which returns a non-indexed array of values
+ */
+function so_forms_load_fields_pool($sfid, $from_db_cache = false) {
+    static $pool = array();
+
+    if(empty($pool)) {
+
+        if($from_db_cache == false) {
+            $field_infos = explode(':', $sfid);
+
+            // On récupère les champs des modules implémentant le hook_so_forms()
+            $modules = module_implements('so_forms');
+
+            foreach($modules as $module) {
+                $definitions = module_invoke($module, 'so_forms', $field_infos[0], $field_infos[1]);
+
+                foreach((array)$definitions['fields_definitions'] as $field_name => $field) {
+                    $field_context = !empty($field['context']) ? $field['context'] : $field_infos[1];
+
+                    $pool[$module . ':' . $field_name . ':' . $field_context] = $field;
+                }
+
+                if(!empty($definitions['types_definitions'])) {
+                    so_forms_register_fields_types($definitions['types_definitions']);
+                }
+
+                if(!empty($definitions['widgets_definitions'])) {
+                    so_forms_register_widgets($definitions['widgets_definitions']);
+                }
+            }
+        } else {
+            $form_params = so_forms_load_form_params($sfid);
+
+            so_forms_register_fields_types($form_params->definitions['registered_fields_types']);
+            so_forms_register_widgets($form_params->definitions['registered_widgets']);
+        }
+    }
+
+    return $pool;
+}
+
+/**
+ * Stores fields types implemented by modules
+ * Without parameter, returns all registered types
+ *
+ * @param array $types_definitions
+ * @return array
+ */
+function so_forms_register_fields_types($types_definitions = null) {
+    static $types = array();
+
+    if(!empty($types_definitions)) {
+        $types = array_merge($types, $types_definitions);
+    }
+
+    return $types;
+}
+
+/**
+ * Helper : provides all registered form fields types list.
+ *
+ * @return array of :
+ *      field_type => array :
+ *          - label : human readable name
+ *          - class : class name
+ *          - path : path to php class file (without trailing slash)
+ */
+function so_forms_registered_fields_types() {
+    return so_forms_register_fields_types();
+}
+
+/**
+ * Stores widgets implemented by modules
+ * Without parameter, returns all registered types
+ *
+ * @param array $widgets_definitions
+ * @return array
+ */
+function so_forms_register_widgets($widgets_definitions = null) {
+    static $widgets = array();
+
+    if(!empty($widgets_definitions)) {
+        $widgets = array_merge($widgets, $widgets_definitions);
+    }
+
+    return $widgets;
+}
+
+/**
+ * Helper : provides all registered widgets list.
+ *
+ * @return array of :
+ *      field type => array :
+ *          - label : human readable name
+ *          - class : class name
+ *          - path : path to php class file (without trailing slash)
+ */
+function so_forms_registered_widgets() {
+    return so_forms_register_widgets();
+}
+
+/**
+ * Save a form field
+ *
+ * @param array/stdClass &$field
+ * @param string $display
+ *
+ * @return stdClass : the database stored field object
+ */
+function so_forms_store_field($field, $display = 'default') {
+
+    $field = (array)$field;
+
+    $display_record = array(
+        'display' => $display,
+        'label' => $field['label'],
+        'enabled' => $field['enabled'],
+        'form_region' => $field['form_region'],
+        'gid' => $field['gid'],
+        'weight' => $field['weight'],
+    );
+
+    $field_record = array_diff_key($field, $display_record);
+
+    $field_record['params'] = serialize((array)$field_record['params']);
+    $field_record['field_values'] = serialize((array)$field_record['field_values']);
+
+    if (!empty($field_record['id'])) {
+
+        drupal_write_record('so_forms_fields', $field_record, 'id');
+
+        $display_record_exists = db_query("SELECT count(*) FROM {so_forms_fields_displays} WHERE fid=? AND display=?", array($field_record['id'], $display))->fetchColumn();
+        $display_record['fid'] = $field_record['id'];
+
+        drupal_write_record('so_forms_fields_displays', $display_record, !empty($display_record_exists) ? array('fid', 'display') : array());
+
+    } else {
+
+        $field_record['secured_id'] = md5(uniqid() . 'fdàdgg@8-(55ag%%g)'); // id public (AHAH, etc.)
+        drupal_write_record('so_forms_fields', $field_record);
+
+        $display_record['fid'] = $field_record['id'];
+        drupal_write_record('so_forms_fields_displays', $display_record);
+    }
+
+    return so_forms_get_stored_field($field_record['id'], $display);
+}
+
+/**
+ * Returns one db stored field
+ *
+ * @param int/string $id database id or secured id
+ * @param string $display
+ *
+ * @return stdClass object matching db record
+ */
+function so_forms_get_stored_field($id, $display = 'default') {
+
+    if(preg_match('/^[a-f0-9]{32}$/', $id)) { // Obligatoire à cause de la pré-conversion de type MySQL : string -> int ; exemple : "3d" -> "3"
+        $field = db_query(
+            "SELECT * FROM {so_forms_fields} AS f
+            LEFT JOIN {so_forms_fields_displays} AS d ON d.fid=f.id AND d.display=:display
+            WHERE secured_id=:id",
+            array(
+                ':id' => $id,
+                ':display' => $display,
+            )
+        )->fetchObject();
+    } else {
+        $field = db_query(
+            "SELECT * FROM {so_forms_fields} AS f
+            LEFT JOIN {so_forms_fields_displays} AS d ON d.fid=f.id AND d.display=:display
+            WHERE id=:id",
+            array(
+                ':id' => $id,
+                ':display' => $display,
+            )
+        )->fetchObject();
+    }
+
+    if(empty($field)) {return;}
+
+    if($display != 'default' && empty($field->fid)) {// $display != 'default' : on évite les récursions infinies
+        return so_forms_get_stored_field($id, 'default');
+    }
+
+    $field->params = (array)unserialize($field->params);
+    $field->field_values = (array)unserialize($field->field_values);
+
+    return $field;
+}
+
+/**
+ * Returns form fields without groups for a given form
+ * Fields are ordered by weight ascendant
+ *
+ * @param string $sfid
+ * @param string $display
+ * @param boolean $use_secured_id : returned array must be indexed by 'secured_id' or by 'id' ?
+ *
+ * @return array of objects
+ */
+function so_forms_get_stored_fields($sfid, $display = 'default', $use_secured_id = false) {
+
+    $db_result = db_query(
+        "SELECT * FROM {so_forms_fields} AS f
+        LEFT JOIN {so_forms_fields_displays} AS d ON d.fid=f.id AND d.display=:display
+        WHERE f.sfid=:sfid AND f.field_type!='group'
+        ORDER BY d.weight ASC",
+        array(
+            ':sfid' => $sfid,
+            ':display' => $display,
+        )
+    );
+
+    $result = array();
+
+    $index = $use_secured_id == false ? 'id' : 'secured_id';
+
+    while ($field = $db_result->fetchObject()) {
+
+        if(empty($field->fid)) {
+            $default_field = so_forms_get_stored_field($field->id, 'default');
+            $field->label = $default_field->label;
+            $field->form_region = $default_field->form_region;
+            $field->weight = $default_field->weight;
+        }
+
+        $field->params = (array)unserialize($field->params); // actuellement, les groupes n'ont pas de paramètres
+        $field->field_values = (array)unserialize($field->field_values); // inutilisé
+        $result[$field->$index] = $field;
+    }
+
+    if($display != 'default' && empty($result)) {// $display != 'default' : on évite les récursions infinies
+        $result = so_forms_get_stored_fields($sfid, 'default', $use_secured_id);
+
+        array_walk($result, function(&$val) {
+            $val->gid = '';
+            $val->enabled = false;
+        });
+    }
+
+    return $result;
+}
+
+/**
+ * Returns only the form fields matching type 'group' for a given form and a given display
+ *
+ * @param string $sfid
+ * @param string $display
+ *
+ * @return array of objects
+ */
+function so_forms_get_stored_groups($sfid, $display = 'default') {
+
+    $db_result = db_query(
+        "SELECT * FROM {so_forms_fields} AS f
+        LEFT JOIN {so_forms_fields_displays} AS d ON d.fid=f.id
+        WHERE f.sfid=:sfid AND f.field_type='group' AND d.display=:display
+        ORDER BY d.weight ASC",
+        array(
+            ':sfid' => $sfid,
+            ':display' => $display,
+        )
+    );
+
+    $result = array();
+
+    while ($field = $db_result->fetchObject()) {
+
+        $field->params = (array)unserialize($field->params); // actuellement, les groupes n'ont pas de paramètres
+        $field->field_values = (array)unserialize($field->field_values); // inutilisé
+        $result[$field->id] = $field;
+    }
+
+    return $result;
+}
+
+/**
+ * Returns a field fully loaded object
+ *
+ * @param int $id database id
+ * @param string $display
+ * @param string $lang lang code
+ * @param boolean $light if set to 'true', fields pool is not loaded. Instead, the database pool cache is loaded.
+ * @param boolean $cached : if true, function returns a cached instance
+ *
+ * @return object
+ */
+function so_forms_get_field_instance($id, $display = 'default', $lang = null, $light = false, $cached = true) {
+
+    static $field_instances = array();
+
+    if($cached == true && !empty($field_instances[$id])) {return $field_instances[$id];}
+
+    $form_field = so_forms_get_stored_field($id, $display);
+
+    so_forms_load_fields_pool($form_field->sfid, $light);
+
+    $field_types = so_forms_registered_fields_types();
+    $widgets = so_forms_registered_widgets();
+
+    $widget = new $widgets[$form_field->widget]['class']();
+
+    $field_instance = new $field_types[$form_field->field_type]['class']($form_field, $widget, $lang);
+
+    $field_instances[$id] = $field_instance;
+
+    return $field_instance;
+}
+
+/**
+ * Implementation of hook_so_forms()
+ * Define base types and widgets
+ */
+function so_forms_so_forms($module, $id) {
+
+    return array(
+        'types_definitions' => array(
+            'text' => array(
+                'label' => 'Text',
+                'class' => 'FormFieldText',
+            ),
+            'dates' => array(
+                'label' => 'Dates',
+                'class' => 'FormFieldDates',
+            ),
+            'numerical' => array(
+                'label' => 'Numerical',
+                'class' => 'FormFieldNumerical',
+            ),
+        ),
+
+        'widgets_definitions' => array(
+            'textfield' => array(
+                'label' => 'Text field',
+                'class' => 'FormWidgetTextfield',
+            ),
+            'checkboxes' => array(
+                'label' => 'Check boxes',
+                'class' => 'FormWidgetCheckboxes',
+            ),
+            'select' => array(
+                'label' => 'Select box',
+                'class' => 'FormWidgetSelect',
+            ),
+            'radios' => array(
+                'label' => 'Radios buttons',
+                'class' => 'FormWidgetRadios',
+            ),
+            'onoff' => array(
+                'label' => 'Check box (yes/no)',
+                'class' => 'FormWidgetOnOff',
+            ),
+            'datefields' => array(
+                'label' => 'Date fields',
+                'class' => 'FormWidgetDatefields',
+            ),
+        ),
+    );
+}
+
+/**
+ * Return database stored params of the form
+ *
+ * @param string $id
+ * @param string $display
+ *
+ * return stdClass
+ */
+function so_forms_load_form_params($sfid, $display = 'default') {
+
+    // pas de mise en cache static : on se sert de cette fonction pour tester l'existence du form, avant d'éventuellement le créer (compat. mode)
+
+    $form_infos = db_query(
+        "SELECT f.name, f.params, d.configuration, f.secured_sfid, d.display, d.display_label FROM {so_forms} AS f
+        LEFT JOIN {so_forms_displays} AS d ON d.sfid=f.sfid AND d.display=:display
+        WHERE (f.sfid=:sfid OR f.secured_sfid=:sfid)",
+        array(
+            ':sfid' => $sfid,
+            ':display' => $display,
+        )
+    )->fetchObject();
+
+    if(empty($form_infos)) {return;}
+
+    if(empty($form_infos->configuration)) {
+        return so_forms_load_form_params($sfid, 'default');
+    }
+
+    $params = unserialize($form_infos->params);
+    unset($form_infos->params);
+
+    $display_configuration = unserialize($form_infos->configuration);
+    unset($form_infos->configuration);
+
+    $form_infos->configuration = $params['configuration'] + $display_configuration;
+    $form_infos->definitions = $params['definitions_cache'];
+
+    return $form_infos;
+}
+
+function so_forms_get_data_from_url($sfid) {
+
+    $url_params = drupal_get_query_parameters();
+
+    if(!array_key_exists('sfkey', $url_params)) {return array();}
+
+    $sfkey = check_plain($url_params['sfkey']);
+
+    $stored_values = db_select('so_forms_url_params', 'p')
+            ->fields('p', array('params'))
+            ->condition('p.id', $sfkey, '=')
+            ->condition('p.sfid', $sfid, '=')
+            ->execute()
+            ->fetchColumn();
+
+    if(empty($stored_values)) {return array();}
+
+    db_update('so_forms_url_params')
+        ->fields(array(
+            'last_use' => time(),
+        ))
+        ->condition('id', $sfkey, '=')
+        ->condition('sfid', $sfid, '=')
+        ->execute();
+
+    return (array)unserialize(gzinflate(base64_decode(strtr(check_plain($stored_values), '-_', '/+'))));
+}
+
+/**
+ * The Form builder
+ *
+ * @param array $form
+ * @param array &$form_state
+ * @param string $module
+ * @param string/int $id
+ * @param string $display
+ * @param string $lang : lang code
+ * @param array $parents : when used as element : the data structure path of the pseudo-form in $form_state['values']
+ * @param mixed $data : data to pass to callbacks (='#data' for so_forms used as element)
+ *
+ * @return array
+ */
+function so_forms_build_form($form, &$form_state, $module, $id, $display, $lang, $parents = array(), $data = null) {
+
+    $sfid = so_forms_get_sfid($module, $id);
+
+    // on récupère d'abord les champs : inutile de commencer quoi que ce soit s'il n'y a pas de champs
+    $fields = so_forms_get_stored_fields($sfid, $display);
+
+    if(empty($fields)) {return array();}
+
+    if($lang == null) {
+        $lang = language_default('language');
+    }
+
+    $secured_sfid = so_forms_get_secured_sfid($module, $id);
+
+    $form_params = so_forms_load_form_params($sfid, $display);
+
+    if(empty($form_params->secured_sfid)) {return false;}
+
+    if(so_forms_check_perms('display', $sfid) == false) {
+        return;
+    }
+
+    $sfid_infos = explode(':', $sfid); // 0 : module / 1 : id
+
+    $form = array(
+        '#tree' => true,
+        '#parents' => $parents,
+        '#theme' => array(
+            'so_form__' . $form_params->secured_sfid . '_' . $display,
+            'so_form__' . $form_params->secured_sfid,
+            'so_form__' . $sfid_infos[0] . '_' . $sfid_infos[1] . '_' . $display,
+            'so_form__' . $sfid_infos[0] . '_' . $sfid_infos[1],
+            'so_form__' . $sfid_infos[0] . '_' . $display,
+            'so_form__' . $sfid_infos[0],
+            'so_form__' . $display,
+            'so_form'
+        ),
+        '#submit' => array('so_forms_build_form_submit'),
+        '#id' => $module . '_' . strtolower(preg_replace('#[^a-z0-9_]#', '_', $id)),
+        '#attributes'=> array('class' => array(
+            'so_forms_form',
+            'so_forms-display-' . $display,
+            'so_forms-module-' . $module,
+        )),
+
+        '#public_infos' => so_forms_infos($module, $id),
+
+        'normal' => array(),
+        'advanced' => array(),
+
+        'so_form_submited_for' => array(
+            '#type' => 'hidden',
+            '#value' => $secured_sfid,
+        ),
+
+        'sfid' => array(
+            '#type' => 'value',
+            '#value' => $sfid,
+        ),
+
+        'display' => array(
+            '#type' => 'value',
+            '#value' => $display,
+        ),
+
+        'data' => array(
+            '#type' => 'value',
+            '#value' => $data,
+        ),
+
+        'sf_language' => array(
+            '#type' => 'value',
+            '#value' => $lang,
+        ),
+    );
+
+    $custom_classes = explode(',', $form_params->configuration['classes']);
+
+    foreach($custom_classes as $class) {
+        $form['#attributes']['class'][] = trim($class);
+    }
+
+    $groups = so_forms_get_stored_groups($sfid, $display);
+
+    $groups_pointers = array();
+
+    foreach($groups as $index => $group) {
+
+        if($group->enabled != true) {
+            unset($groups[$index]);
+            continue;
+        }
+
+        if(array_key_exists('configuration', $group->params)) {
+            if($group->params['configuration']['display_label'] == true) {
+                $group_label = $group->label;
+            } else {
+                $group_label = '';
+            }
+        } else {
+            $group_label = $group->label; // retro-compatibilité
+        }
+
+        $form[$group->form_region]['group_' . $group->id] = array(
+            '#type' => 'fieldset',
+            '#title' =>  $group_label,
+            '#weight' => $group->weight,
+        );
+
+        $groups_pointers[] = &$form[$group->form_region]['group_' . $group->id];
+    }
+
+    $default_value = array();
+
+    if(!empty($form_params->configuration['callbacks']['populate'])) {
+
+        foreach($form_params->configuration['include_paths'] as $include) {
+            module_load_include('inc', $include['module'], $include['script']);
+        }
+
+        $default_value += (array)call_user_func($form_params->configuration['callbacks']['populate'], $id, $data);
+    }
+
+    $values_from_url = so_forms_get_data_from_url($sfid);
+
+    if(!empty($values_from_url)) {
+
+        $default_value += $values_from_url;
+
+    } elseif($form_params->configuration['memorize'] == true) {
+
+        $default_value += (array)$_SESSION['so_forms'][$sfid]['user_raw_inputs'];
+    }
+
+    if(!empty($default_value)) {
+        $form['#form_is_populated'] = true;
+        $form['#attributes']['class'][] = 'so_forms-populated-true';
+
+        if(!empty($values_from_url)) {
+            $url_params = drupal_get_query_parameters();
+            $form['#form_link'] = url(current_path(), array('absolute' => true, 'query' => array('sfkey' => $url_params['sfkey'])));
+            $form['#sfkey'] = $url_params['sfkey'];
+        }
+
+    } else {
+
+        $form['#form_is_populated'] = false;
+        $form['#attributes']['class'][] = 'so_forms-populated-false';
+        $form['#form_link'] = '';
+    }
+
+    foreach($fields as $fid => $field) {
+
+        $field_infos = explode(':', $field->field);
+
+        if($field->enabled != true) {continue;}
+
+        if($field->form_region == 'advanced' && !empty($default_value[$field->id])) {
+            $form['#advanced_form_is_populated'] = true;
+        } else {
+            $form['#advanced_form_is_populated'] = false;
+        }
+
+        if(!empty($field->gid)) {
+            if(!isset($groups[$field->gid])) {continue;}
+            $target = &$form[$field->form_region]['group_' . $field->gid];
+        } else {
+            $target = &$form[$field->form_region];
+        }
+
+        $field_instance = so_forms_get_field_instance($fid, $display, $lang, true);
+
+        $field_rendered = $field_instance->render((array)$default_value[$field->id]);
+
+        // Dans la mesure où un élément est rendu en deux fois (initialisation par la classe Field et complément par la classe Widget),
+        // on peut se retrouver avec un élément partiellement complété : un on/off sans valeurs va avoir un '#title' et un '#weight', mais ne
+        // contiendra pas les attributs propres au widget (dont '#type'), ce dernier ayant retourné null, en l'absence de valeurs autorisées.
+        //
+        // Solution plus élégante : si la classe Widget retourne '=== false', la classe Field ne retourne rien, et on fait le test sur empty().
+        // TODO : modifier toutes les classes en ce sens.
+        if(empty($field_rendered['#type'])) {continue;}
+
+        $field_rendered['#attributes']['class'] = array_merge((array)$field_rendered['#attributes']['class'], array(
+            $field_infos[1],
+            'so_forms_' . $field->field_type . '_' . $field->widget,
+        ));
+
+        $field_rendered['#parents'] = array_merge($parents, array('fields', $field->secured_id));
+
+        $target[$field->secured_id] = $field_rendered;
+    }
+
+    if($form['#advanced_form_is_populated'] == true) {
+        $form['#attributes']['class'][] = 'so_forms-advanced_populated-true';
+    } else {
+        $form['#attributes']['class'][] = 'so_forms-advanced_populated-false';
+    }
+
+    foreach($groups_pointers as &$group_pointer) {
+        if(count(element_children($group_pointer)) == 0) {
+            $group_pointer = null;
+        }
+    }
+
+    if(empty($form['normal']) && empty($form['advanced'])) {return $form;}
+
+    if(!empty($form_params->configuration['buttons']['submit'])) {
+        $form['submit'] = array(
+            '#type' => 'submit',
+            '#value' => t($form_params->configuration['buttons']['submit']),
+            '#weight' => 100,
+            '#op' => 'execute',
+            '#attributes' => array('class' => array('submit')),
+        );
+    }
+
+    if(!empty($form_params->configuration['buttons']['reset'])) {
+        $form['reset'] = array(
+            '#type' => 'submit',
+            '#value' => t($form_params->configuration['buttons']['reset']),
+            '#weight' => 100,
+            '#op' => 'reset',
+            '#disabled' => empty($default_value),
+            '#attributes' => array('class' => array('reset')),
+        );
+    }
+
+    // Un bug intéressant :
+    // Si on fait un dpm($form) ici, alors que le form contient au moins un élément de type 'checkboxes'
+    // qui est doté d'au moins une classe perso, la page plante :
+    // form.inc:_form_set_class() se retrouve à merger une chaîne au lieu d'un array.
+    // Cette chaine semble correspondre à ce qui est retourné par drupal_attributes() : "class='classe_custom form_checkbox'"
+
+    return $form;
+}
+
+/**
+ * The Form submission
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function so_forms_build_form_submit($form, &$form_state) {
+
+    $sfid = $form_state['values']['sfid'];
+    $display = $form_state['values']['display'];
+
+    $field_infos = explode(':', $sfid);
+
+    if($form_state['clicked_button']['#op'] == 'reset') {
+        if(!empty($_SESSION['so_forms'][$sfid])) {
+            so_forms_get_user_inputs($field_infos[0], $field_infos[1], true);
+        }
+
+        so_forms_process_user_inputs($sfid, null, null, $display);
+        so_forms_submit_redirect($sfid, $display);
+
+        return;
+    }
+
+    $user_raw_inputs = array(); // non utilisé, mais passage par &
+    $compiled_user_inputs = so_forms_submit_element($form_state['values'], $user_raw_inputs, $form_state['values']['data']);
+
+    so_forms_submit_redirect($sfid, $display, $user_raw_inputs, $compiled_user_inputs, $form_state['values']['data']);
+}
+
+/**
+ * Process user inputs : store data and/or pass them to the form's 'process' callback.
+ *
+ * @param string $sfid
+ * @param array $user_raw_inputs
+ * @param array $user_inputs
+ * @param string $display
+ * @param mixed $data : data to pass to callbacks
+ */
+function so_forms_process_user_inputs($sfid, $user_inputs, $user_raw_inputs, $display = 'default', $data = null) {
+
+    $form_params = so_forms_load_form_params($sfid, $display);
+
+    if(!empty($form_params->configuration['callbacks']['process'])) {
+        $field_infos = explode(':', $sfid);
+
+        $form_params->configuration['callbacks']['process'](
+                $field_infos[0],
+                $field_infos[1],
+                $user_inputs,
+                $user_raw_inputs,
+                (array)$_SESSION['so_forms'][$sfid]['user_inputs'],
+                $data
+            );
+    }
+
+    if(!empty($user_raw_inputs) && $form_params->configuration['memorize'] == true) {
+        $_SESSION['so_forms'][$sfid] = array(
+            'updated' => true,
+            'user_raw_inputs' => $user_raw_inputs,
+            'user_inputs' => $user_inputs,
+        );
+    } else {
+        unset($_SESSION['so_forms'][$sfid]); // dans le doute, on supprime
+    }
+}
+
+function so_forms_hash($string) {
+
+    $codeset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    $n = base_convert(gzdeflate(md5($string), 9), 16, 10);
+
+    $base = strlen($codeset);
+    $hash = '';
+
+    while($n > 0) {
+        $hash = substr($codeset, bcmod($n, $base), 1) . $hash;
+        $n = bcmul(bcdiv($n, $base), '1', 0);
+    }
+
+    return $hash;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function so_forms_theme() {
+
+    $module_path = drupal_get_path('module', 'so_forms');
+
+    $theme = array(
+        'so_forms_fields_overview' => array(
+            'render element' => 'element',
+            'file' => 'so_forms.admin.inc',
+        ),
+        'so_forms_edit_field' => array(
+            'render element' => 'element',
+            'file' => 'so_forms.admin.inc',
+        ),
+        'so_form' => array(
+            'render element' => 'element',
+            'pattern' => 'so_form__',
+            'arguments' => array('form' => array()),
+            'template' => 'so-form',
+            'path' =>  $module_path . '/theme',
+            'file' => 'theme.inc',
+        ),
+    );
+
+    return $theme;
+}

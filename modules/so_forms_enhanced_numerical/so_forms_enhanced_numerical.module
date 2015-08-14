@@ -1,0 +1,29 @@
+<?php
+
+/*
+ * Implementation of hook_so_forms()
+ */
+function so_forms_enhanced_numerical_so_forms($module, $id) {
+
+    return array(
+        'widgets_definitions' => array(
+            'slider' => array(
+                'label' => "Slider",
+                'class' => 'FormWidgetSlider',
+            ),
+        ),
+    );
+}
+
+/*
+ * Implementation of hook_so_forms_compatible_widgets_info()
+ */
+function so_forms_enhanced_numerical_so_forms_compatible_widgets_info($field_type) {
+
+    switch($field_type) {
+
+        case 'numerical':
+            return array('slider');
+            break;
+    }
+}
