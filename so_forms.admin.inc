@@ -714,7 +714,7 @@ function so_forms_fields_overview_add_group_submit($form, &$form_state) {
         'weight' => 50,
     );
 
-    so_forms_store_field($group, $form_state['build_info']['args'][1]);
+    so_forms_store_field($group, $form_state['build_info']['args'][2]);
 }
 
 function so_forms_fields_overview_fields_submit($form, &$form_state) {

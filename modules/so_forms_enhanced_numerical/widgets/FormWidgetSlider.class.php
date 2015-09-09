@@ -93,8 +93,8 @@ class FormWidgetSlider extends FormWidgetAbstract
 
     public function render(array $configuration, array $stored_values, array $default_value) {
 
-        drupal_add_library('system','ui.slider') ;
-        drupal_add_js(drupal_get_path('module', 'so_forms_enhanced_numerical') . '/js/so_forms_enhanced_numerical.js', array('scope' => 'footer', 'type' => 'file'));
+        drupal_add_library('system', 'ui.slider');
+        drupal_add_js(drupal_get_path('module', 'so_forms_enhanced_numerical') . '/js/so_forms_enhanced_numerical.js', array('scope' => 'header', 'type' => 'file'));
         drupal_add_css(drupal_get_path('module', 'so_forms_enhanced_numerical') . '/css/so_forms_enhanced_numerical.css', array('type' => 'file'));
 
         $slider_text = !empty($configuration['slider_text']) ? $configuration['slider_text'] . " : " : "";
