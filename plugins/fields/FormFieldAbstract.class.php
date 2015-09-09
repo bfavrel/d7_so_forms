@@ -282,8 +282,10 @@ abstract class FormFieldAbstract
 
             $args = array_merge($arguments, $args);
 
+            if(!empty($this->_include_paths)) {
             foreach($this->_include_paths as $include) {
                 module_load_include('inc', $include['module'], $include['script']);
+                }
             }
 
             // field_infos, langcode, custom module's configuration and additional args
