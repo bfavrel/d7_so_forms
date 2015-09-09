@@ -283,8 +283,8 @@ abstract class FormFieldAbstract
             $args = array_merge($arguments, $args);
 
             if(!empty($this->_include_paths)) {
-            foreach($this->_include_paths as $include) {
-                module_load_include('inc', $include['module'], $include['script']);
+                foreach($this->_include_paths as $include) {
+                    module_load_include('inc', $include['module'], $include['script']);
                 }
             }
 
