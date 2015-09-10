@@ -467,6 +467,8 @@ function so_forms_element_info() {
  */
 function so_forms_submit_element($form_values, &$user_raw_inputs = array(), $data = null) {
 
+    if(empty($form_values)) {return array();}
+    
     $compiled_user_inputs = so_forms_compile_user_raw_inputs($form_values['fields'], $form_values['sf_language'], $user_raw_inputs);
     so_forms_process_user_inputs($form_values['sfid'], $compiled_user_inputs, $user_raw_inputs, $form_values['display'], $data);
 
