@@ -468,7 +468,7 @@ function so_forms_element_info() {
 function so_forms_submit_element($form_values, &$user_raw_inputs = array(), $data = null) {
 
     if(empty($form_values)) {return array();}
-    
+
     $compiled_user_inputs = so_forms_compile_user_raw_inputs($form_values['fields'], $form_values['sf_language'], $user_raw_inputs);
     so_forms_process_user_inputs($form_values['sfid'], $compiled_user_inputs, $user_raw_inputs, $form_values['display'], $data);
 
@@ -1403,6 +1403,8 @@ function so_forms_build_form($form, &$form_state, $module, $id, $display, $lang,
         $form['#form_link'] = '';
     }
 
+    $form['#advanced_form_is_populated'] = false;
+
     foreach($fields as $fid => $field) {
 
         $field_infos = explode(':', $field->field);
@@ -1411,8 +1413,6 @@ function so_forms_build_form($form, &$form_state, $module, $id, $display, $lang,
 
         if($field->form_region == 'advanced' && !empty($default_value[$field->id])) {
             $form['#advanced_form_is_populated'] = true;
-        } else {
-            $form['#advanced_form_is_populated'] = false;
         }
 
         if(!empty($field->gid)) {
@@ -1561,10 +1561,10 @@ function so_forms_hash($string) {
  * DAVID : 25/08/2015 : avec certaines recherches (chambres d'hôte : commune = "La Souterraine"),
  * $n est égal à zéro, et le hash est donc null. Cela provoque donc une erreur PDO, dans la mesure
  * où ce hash est un des deux champs de clé primaire de la table des params d'URL.
- * 
+ *
  * Solution : transformer le md5 [A-F0-9] en [a-zA-Z0-9] pour obtenir un hash plus court
  */
-    
+
 //    $codeset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 //    $n = base_convert(gzdeflate(md5($string), 9), 16, 10);
 //
@@ -1575,7 +1575,7 @@ function so_forms_hash($string) {
 //        $hash = substr($codeset, bcmod($n, $base), 1) . $hash;
 //        $n = bcmul(bcdiv($n, $base), '1', 0);
 //    }
-    
+
     $hash = substr($string, 0, 6);
 
     return $hash;
