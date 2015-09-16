@@ -501,9 +501,11 @@ function so_forms_submit_redirect($sfid, $display = 'default', $user_raw_inputs 
             }
         });
 
-        $compressed_raw_inputs = rtrim(strtr(base64_encode(gzdeflate(serialize($user_raw_inputs), 9)), '/+', '-_'), "=");
+        $serialized_raw_input = serialize($user_raw_inputs);
+        $url_key = so_forms_hash($serialized_raw_input);
 
-        $url_key = so_forms_hash($compressed_raw_inputs);
+        $compressed_raw_inputs = rtrim(strtr(base64_encode(gzdeflate($serialized_raw_input, 9)), '/+', '-_'), "=");
+
         $redirect_arguments['sfkey'] = $url_key;
 
         $existing = db_query("SELECT id FROM {so_forms_url_params} WHERE id=? AND sfid=?", array(
@@ -1561,8 +1563,6 @@ function so_forms_hash($string) {
  * DAVID : 25/08/2015 : avec certaines recherches (chambres d'hôte : commune = "La Souterraine"),
  * $n est égal à zéro, et le hash est donc null. Cela provoque donc une erreur PDO, dans la mesure
  * où ce hash est un des deux champs de clé primaire de la table des params d'URL.
- *
- * Solution : transformer le md5 [A-F0-9] en [a-zA-Z0-9] pour obtenir un hash plus court
  */
 
 //    $codeset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -1576,7 +1576,7 @@ function so_forms_hash($string) {
 //        $n = bcmul(bcdiv($n, $base), '1', 0);
 //    }
 
-    $hash = substr($string, 0, 6);
+    $hash = substr(md5($string), 0, 8);
 
     return $hash;
 }
