@@ -1557,28 +1557,25 @@ function so_forms_process_user_inputs($sfid, $user_inputs, $user_raw_inputs, $di
     }
 }
 
-function so_forms_hash($string) {
+function so_forms_hash($string, $length = 8) {
 
-/*
- * DAVID : 25/08/2015 : avec certaines recherches (chambres d'hôte : commune = "La Souterraine"),
- * $n est égal à zéro, et le hash est donc null. Cela provoque donc une erreur PDO, dans la mesure
- * où ce hash est un des deux champs de clé primaire de la table des params d'URL.
- */
+    $md5 = md5($string);
 
-//    $codeset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-//    $n = base_convert(gzdeflate(md5($string), 9), 16, 10);
-//
-//    $base = strlen($codeset);
-//    $hash = '';
-//
-//    while($n > 0) {
-//        $hash = substr($codeset, bcmod($n, $base), 1) . $hash;
-//        $n = bcmul(bcdiv($n, $base), '1', 0);
-//    }
+    $hash = "";
 
-    $hash = substr(md5($string), 0, 8);
+    $dico_string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    $dico_array = str_split($dico_string, 1);
+    $dico_size = count($dico_array);
 
-    return $hash;
+    while(!empty($md5)) {
+
+        $tmp = substr($md5, 0, 2);
+        $md5 = substr($md5, 2);
+
+        $hash .= $dico_array[hexdec($tmp) % $dico_size];
+    }
+
+    return substr($hash, 0, $length);
 }
 
 /**
