@@ -33,7 +33,8 @@ class FormWidgetOnOff extends FormWidgetAbstract {
 
         // ça, c'est moche : TODO : trouver mieux
         // problème du fait des transtypages en array, la valeur contient '[0] = 0'. Donc empty() renvoit false.
-        if(count($stored_values) == 1 && array_pop(array_values($stored_values)) == '0') {
+        $stored_values_values = array_values($stored_values);
+        if(count($stored_values) == 1 && array_pop($stored_values_values) == '0') {
             $default_values = null;
         } else {
             $default_values = array_keys($stored_values);
