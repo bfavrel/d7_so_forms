@@ -1441,6 +1441,9 @@ function so_forms_build_form($form, &$form_state, $module, $id, $display, $lang,
             'so_forms_' . $field->field_type . '_' . $field->widget,
         ));
 
+        // pour aider les thèmeurs
+        $field_rendered['#is_so_form'] = true;
+
         $field_rendered['#parents'] = array_merge($parents, array('fields', $field->secured_id));
 
         $target[$field->secured_id] = $field_rendered;
