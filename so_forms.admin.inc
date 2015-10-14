@@ -15,7 +15,7 @@ function so_forms_fields_overview($form, &$form_state, $module, $id, $display = 
 
     $form_params = so_forms_load_form_params($sfid, $display);
 
-    foreach($form_params->configuration['include_paths'] as $include) {
+    foreach((array)$form_params->configuration['include_paths'] as $include) {
         module_load_include('inc', $include['module'], $include['script']);
     }
 
