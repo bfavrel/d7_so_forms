@@ -762,7 +762,7 @@ function so_forms_fields_overview_fields_submit($form, &$form_state) {
 
 function so_forms_fields_overview_params_submit($form, &$form_state) {
 
-    $display = $form_state['build_info']['args'][1];
+    $display = $form_state['build_info']['args'][2];
 
     $form_default_params = so_forms_get_default_config();
 
@@ -789,8 +789,8 @@ function so_forms_fields_overview_params_submit($form, &$form_state) {
 
 function so_forms_fields_overview_displays_submit($form, &$form_state) {
 
-    $sfid = $form_state['build_info']['args'][0];
-    $display = $form_state['build_info']['args'][1];
+    $sfid = so_forms_get_sfid($form_state['build_info']['args'][0], $form_state['build_info']['args'][1]);
+    $display = $form_state['build_info']['args'][2];
     $form_default_params = so_forms_get_default_config();
     $operation = $form_state['values']['params']['displays'];
 
