@@ -768,14 +768,17 @@ function so_forms_forms($form_id) {
 /**
  * Retrieves sfid from database
  *
- * @param string $module (or null)
+ * @param string &$module (or null). When function returns, contains module's name (useful in case of using secured sfid).
  * @param string $id
  *
  * @return string
  */
-function so_forms_get_sfid($module, $id) {
+function so_forms_get_sfid(&$module, $id) {
     if($module == null) {
-        return db_query("SELECT sfid FROM {so_forms} WHERE secured_sfid='" . $id . "'")->fetchColumn();
+        $sfid = db_query("SELECT sfid FROM {so_forms} WHERE secured_sfid='" . $id . "'")->fetchColumn();
+        $parsed = explode(':', $sfid);
+        $module = $parsed[0];
+        return $sfid;
     } else {
         return $module . ':' . $id;
     }
