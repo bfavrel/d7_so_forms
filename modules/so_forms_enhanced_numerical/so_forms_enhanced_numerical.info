@@ -7,3 +7,4 @@ version = "7.x-1.0"
 dependencies[] = so_forms
 
 files[] = widgets/FormWidgetSlider.class.php
+files[] = widgets/FormWidgetNumericalRanges.class.php

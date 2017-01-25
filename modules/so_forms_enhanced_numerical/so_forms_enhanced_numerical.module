@@ -11,6 +11,10 @@ function so_forms_enhanced_numerical_so_forms($module, $id) {
                 'label' => "Slider",
                 'class' => 'FormWidgetSlider',
             ),
+            'values_ranges' => array(
+                'label' => "Values ranges",
+                'class' => 'FormWidgetNumericalRanges'
+            ),
         ),
     );
 }
@@ -23,7 +27,10 @@ function so_forms_enhanced_numerical_so_forms_compatible_widgets_info($field_typ
     switch($field_type) {
 
         case 'numerical':
-            return array('slider');
+            return array(
+                'slider',
+                'values_ranges',
+            );
             break;
     }
 }

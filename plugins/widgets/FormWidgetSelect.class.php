@@ -82,7 +82,7 @@ class FormWidgetSelect extends FormWidgetCheckboxes
     public function compileValues(array $raw_values, array $configuration, array $stored_values) {
 
         if($raw_values[0] == 'select_all') {return array();}
-        
+
         $compiled_values = parent::compileValues($raw_values, $configuration, $stored_values);
 
         return $compiled_values;
