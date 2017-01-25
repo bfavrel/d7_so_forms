@@ -13,7 +13,7 @@ function so_forms_schema() {
                 'type' => 'varchar',
                 'length' => 255,
                 'description' => "Primary key : form id",
-                'not null' => false,
+                'not null' => true,
             ),
             'name' => array(
                 'type' => 'varchar',
@@ -131,7 +131,7 @@ function so_forms_schema() {
                 'type' => 'varchar',
                 'length' => 255,
                 'description' => "Primary key",
-                'not null' => false,
+                'not null' => true,
             ),
             'sfid' => array(
                 'type' => 'varchar',
@@ -231,7 +231,7 @@ function so_forms_schema() {
                 'type' => 'varchar',
                 'length' => 255,
                 'description' => "Form's id. Primary key",
-                'not null' => false,
+                'not null' => true,
             ),
 
             'display' => array(
@@ -274,7 +274,7 @@ function so_forms_update_7001() {
                 'type' => 'varchar',
                 'length' => 255,
                 'description' => "Primary key",
-                'not null' => false,
+                'not null' => true,
             ),
             'sfid' => array(
                 'type' => 'varchar',
