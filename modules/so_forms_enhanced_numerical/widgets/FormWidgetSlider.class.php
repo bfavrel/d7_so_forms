@@ -78,7 +78,7 @@ class FormWidgetSlider extends FormWidgetAbstract
                 'slider_conversion' => array(
                     '#type' => 'select',
                     '#title' => t("Value conversion"),
-                    '#description' => t("Display value in another unit. Ex : if the original unit of field value is '2500' (meters), if you choose 'Meters to kilometers', widget will display '2,5'"),
+                    '#description' => t("Display value in another unit. Ex : if the original unit of field value is '2500' (meters), if you choose 'Meters to kilometers', widget will display '2km500'"),
                     '#options' => array(
                         '' => "- " . t("No conversion") . " -",
                         t("Time conversion") => array(
