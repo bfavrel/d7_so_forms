@@ -75,6 +75,24 @@ class FormWidgetSlider extends FormWidgetAbstract
                     '#weight' => 10,
                 ),
 
+                'slider_conversion' => array(
+                    '#type' => 'select',
+                    '#title' => t("Value conversion"),
+                    '#description' => t("Display value in another unit. Ex : if the original unit of field value is '2500' (meters), if you choose 'Meters to kilometers', widget will display '2,5'"),
+                    '#options' => array(
+                        '' => "- " . t("No conversion") . " -",
+                        t("Time conversion") => array(
+                            'minutes_2_hours' => t("Minutes to hours"),
+                            'seconds_2_hours' => t("Seconds to hours"),
+                        ),
+                        t("Distance conversion") => array(
+                            'meters_2_kilometers' => t("Meters to kilometers"),
+                        ),
+                    ),
+                    '#default_value' => array_key_exists('slider_conversion', $configuration) ? $configuration['slider_conversion'] : "",
+                    '#weight' => 12,
+                ),
+
                 'slider_unit' => array(
                     '#type' => 'textfield',
                     '#title' => t("Value unit"),
@@ -83,7 +101,12 @@ class FormWidgetSlider extends FormWidgetAbstract
                     t("You can use a space to separate the unit from the number."),
                     '#default_value' => array_key_exists('slider_unit', $configuration) ? $configuration['slider_unit'] : "",
                     '#size' => 15,
-                    '#weight' => 12,
+                    '#weight' => 14,
+                    '#states' => array(
+                        'visible' => array(
+                            ':input[name="configuration[slider_conversion]"]' => array('value' => ''),
+                        ),
+                    ),
                 ),
             ),
         );
@@ -101,13 +124,15 @@ class FormWidgetSlider extends FormWidgetAbstract
         $slider_min = (int)floor(str_replace(',', '.', $configuration['slider_min']));
         $slider_max = (int)floor(str_replace(',', '.', $configuration['slider_max']));
         $slider_step = (float)str_replace(',', '.', $configuration['slider_step']);
+        $slider_unit = $configuration['slider_conversion'] == '' ? $configuration['slider_unit'] : '';
 
         $slider_js_options = array(
             'data-min' => $slider_min,
             'data-max' => $slider_max,
             'data-step' => $slider_step,
             'data-display_limits' => $configuration['display_limits'],
-            'data-unit' => $configuration['slider_unit'],
+            'data-unit' => $slider_unit,
+            'data-conversion' => $configuration['slider_conversion'],
         );
 
         if(array_key_exists('value_1', $default_value) && !empty($default_value['value_1'])) {
@@ -121,14 +146,14 @@ class FormWidgetSlider extends FormWidgetAbstract
         switch($configuration['slider_type']) {
 
             case 'number':
-                $slider_js_options['data-text'] = $slider_text . "#1" . $configuration['slider_unit'];
+                $slider_js_options['data-text'] = $slider_text . "#1" . $slider_unit;
                 $init_value_text = str_replace('#1', $val_1, $slider_js_options['data-text']);
 
                 $slider_js_options['data-value'] = $slider_initial_value;
                 break;
 
             case 'number_max':
-                $slider_js_options['data-text'] = $slider_text . t("from @slider_min to #1", array('@slider_min' => str_replace('.', ',', $slider_min))) . $configuration['slider_unit'];
+                $slider_js_options['data-text'] = $slider_text . t("from @slider_min to #1", array('@slider_min' => str_replace('.', ',', $slider_min))) . $slider_unit;
                 $init_value_text = str_replace('#1', $val_1, $slider_js_options['data-text']);
 
                 $slider_js_options['data-range'] = 'min';
@@ -136,7 +161,7 @@ class FormWidgetSlider extends FormWidgetAbstract
                 break;
 
             case 'absolute_number_max':
-                $slider_js_options['data-text'] = $slider_text . t("#1@unit and less", array('@unit' => $configuration['slider_unit']));
+                $slider_js_options['data-text'] = $slider_text . t("#1@unit and less", array('@unit' => $slider_unit));
                 $init_value_text = str_replace('#1', $val_1, $slider_js_options['data-text']);
 
                 $slider_js_options['data-range'] = 'min';
@@ -144,7 +169,7 @@ class FormWidgetSlider extends FormWidgetAbstract
                 break;
 
             case 'number_min':
-                $slider_js_options['data-text'] = $slider_text . t("from #1 to @slider_max", array('@slider_max' => str_replace('.', ',', $slider_max))) . $configuration['slider_unit'];
+                $slider_js_options['data-text'] = $slider_text . t("from #1 to @slider_max", array('@slider_max' => str_replace('.', ',', $slider_max))) . $slider_unit;
                 $init_value_text = str_replace('#1', $val_1, $slider_js_options['data-text']);
 
                 $slider_js_options['data-range'] = 'max';
@@ -152,7 +177,7 @@ class FormWidgetSlider extends FormWidgetAbstract
                 break;
 
             case 'absolute_number_min':
-                $slider_js_options['data-text'] = $slider_text . t("#1@unit and more", array('@unit' => $configuration['slider_unit']));
+                $slider_js_options['data-text'] = $slider_text . t("#1@unit and more", array('@unit' => $slider_unit));
                 $init_value_text = str_replace('#1', $val_1, $slider_js_options['data-text']);
 
                 $slider_js_options['data-range'] = 'max';
@@ -161,7 +186,7 @@ class FormWidgetSlider extends FormWidgetAbstract
 
             case 'range':
 
-                $slider_js_options['data-text'] = $slider_text . t("from #1 to #2") . $configuration['slider_unit'];
+                $slider_js_options['data-text'] = $slider_text . t("from #1 to #2") . $slider_unit;
 
                 $slider_js_options['data-range'] = 'true';
 
