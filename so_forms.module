@@ -1304,7 +1304,7 @@ function so_forms_build_form($form, &$form_state, $module, $id, $display, $lang,
             'so_forms-module-' . $module,
         )),
 
-        '#public_infos' => so_forms_infos($module, $id),
+        '#public_infos' => so_forms_infos($sfid_infos[0], $sfid_infos[1]),
 
         'normal' => array(),
         'advanced' => array(),
