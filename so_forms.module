@@ -1471,16 +1471,19 @@ function so_forms_build_form($form, &$form_state, $module, $id, $display, $lang,
     if(!empty($form_params->configuration['buttons']['submit'])) {
         $form['submit'] = array(
             '#type' => 'submit',
+            '#name' => "op-submit-" . $module . '-' . $id,
             '#value' => t($form_params->configuration['buttons']['submit']),
             '#weight' => 100,
             '#op' => 'execute',
             '#attributes' => array('class' => array('submit')),
+            '##form_infos' => so_forms_infos($sfid_infos[0], $sfid_infos[1]),
         );
     }
 
     if(!empty($form_params->configuration['buttons']['reset'])) {
         $form['reset'] = array(
             '#type' => 'submit',
+            '#name' => "op-reset-" . $module . '-' . $id,
             '#value' => t($form_params->configuration['buttons']['reset']),
             '#weight' => 100,
             '#op' => 'reset',
