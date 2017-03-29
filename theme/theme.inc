@@ -9,6 +9,7 @@ function so_forms_preprocess_so_form(&$vars) {
     $vars['form_link'] = $form['#form_link'];
     $vars['sfkey'] = $form['#sfkey'];
 
+    $vars['form_title'] = $form['#public_infos']['title'];
     $vars['form_name'] = $form['#public_infos']['name'];
     $vars['secured_sfid'] = $form['#public_infos']['secured_sfid'];
 

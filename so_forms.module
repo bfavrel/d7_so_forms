@@ -114,6 +114,7 @@ function so_forms_create($module, $id, $configuration) {
  * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
  *
  * @return array :
+ *      - title
  *      - name
  *      - secured_sfid
  */
@@ -121,6 +122,7 @@ function so_forms_infos($module, $id) {
     $form_infos = so_forms_load_form_params(so_forms_get_sfid($module, $id));
 
     return array(
+        'title' => $form_infos->configuration['title'],
         'name' => $form_infos->name,
         'secured_sfid' => $form_infos->secured_sfid
     );

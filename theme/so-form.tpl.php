@@ -1,7 +1,8 @@
 <?php
 /**
  * Variables :
- *      - $form_name : human readable form name/title
+ *      - $form_title : form title.
+ *      - $form_name : human readable form name.
  *      - $secured_sfid : the sfid to use for any AJAX/AHAH operations or in any other situations where the id of the form has to be exposed.
  *
  *      - $normal_fields : render array of fields to show at start
