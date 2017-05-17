@@ -295,6 +295,24 @@ function so_form($module, $id, $display = 'default', $data = null) {
 }
 
 /**
+ * Return 'true' if form contains data for given module and id.
+ *
+ * @param string $module : module name or null (in this case, $id has to contains the secured sfid)
+ * @param string/int $id : an unique form id (in the module's context) in machine format or secured sfid
+ *
+ * @return boolean
+ */
+function so_forms_check_user_inputs($module, $id) {
+    $sfid = so_forms_get_sfid($module, $id);
+
+    if(array_key_exists($sfid, $_SESSION['so_forms'])) {
+        return array_key_exists('user_raw_inputs', $_SESSION['so_forms'][$sfid]);
+    } else {
+        return false;
+    }
+}
+
+/**
  * Check if new user data are available (new submission) since last call to so_forms_get_user_inputs()
  * If form was reseted, it returns 'null' so '===' must be used if accuracy is needed.
  *
