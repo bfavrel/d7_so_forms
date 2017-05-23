@@ -304,7 +304,11 @@ function so_form($module, $id, $display = 'default', $data = null) {
  */
 function so_forms_check_user_inputs($module, $id) {
     $sfid = so_forms_get_sfid($module, $id);
-
+    
+    if(is_null($_SESSION)) {
+        return false;
+    }
+    
     if(array_key_exists('so_forms', $_SESSION) && array_key_exists($sfid, $_SESSION['so_forms'])) {
         return array_key_exists('user_raw_inputs', $_SESSION['so_forms'][$sfid]);
     } else {
