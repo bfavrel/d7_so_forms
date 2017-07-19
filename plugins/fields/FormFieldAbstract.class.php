@@ -151,6 +151,7 @@ abstract class FormFieldAbstract
             'widget' => $this->_widget_name,
             'label' => $this->_label,
             'language' => $this->_language,
+            'raw' => $raw_value,
         );
 
         if(!empty($this->_configuration['module_custom'])) {
