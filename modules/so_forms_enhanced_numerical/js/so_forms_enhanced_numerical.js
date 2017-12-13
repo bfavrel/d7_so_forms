@@ -8,6 +8,19 @@
 
                 var widgetOptions = $(this).data();
 
+                if($(this).siblings('input.value_1').val() != '') {
+                    var valueDisplay = widgetOptions.text;
+
+                    if($(this).siblings('input.value_1').val() != '' && $(this).siblings('input.value_2').val() == '') {
+                        valueDisplay = valueDisplay.replace('#1', convertValue($(this).siblings('input.value_1').val(), widgetOptions.conversion).replace('.', ','));
+                    } else if($(this).siblings('input.value_1').val() != '' && $(this).siblings('input.value_2').val() != '') {
+                        valueDisplay = valueDisplay.replace('#1', convertValue($(this).siblings('input.value_1').val(), widgetOptions.conversion).replace('.', ','));
+                        valueDisplay = valueDisplay.replace('#2', convertValue($(this).siblings('input.value_2').val(), widgetOptions.conversion).replace('.', ','));
+                    }
+
+                    $(this).siblings('div.value_display').text(valueDisplay);
+                }
+
                 var hardOptions = {
                     'animate': 'fast',
                     'change': function(event, ui) {
