@@ -126,6 +126,8 @@ class FormFieldText extends FormFieldAbstract
         $element = array(
             '#title' => $this->_label,
             '#weight' => $this->_weight,
+            '#prefix' => '<div class="' . 'so_forms_' . $this->_field_type . '_' . $this->_widget_name . '_wrapper ' . $this->_field_name . '_wrapper">',
+            '#suffix' => '</div>',
         );
 
         // les widgets n'ont pas accès aux callbacks. Il faut donc manipuler les valeurs ici. -> bof ! bof!...

@@ -79,6 +79,8 @@ class FormFieldNumerical extends FormFieldAbstract
     public function render(array $default_value) {
         $element = array(
             '#title' => $this->_label,
+            '#prefix' => '<div class="' . 'so_forms_' . $this->_field_type . '_' . $this->_widget_name . '_wrapper ' . $this->_field_name . '_wrapper">',
+            '#suffix' => '</div>',
             '#field_prefix' => $this->_configuration['prefix'],
             '#field_suffix' => $this->_configuration['suffix'],
             '#weight' => $this->_weight,

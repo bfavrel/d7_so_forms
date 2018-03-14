@@ -13,7 +13,8 @@ abstract class FormFieldAbstract
     protected $_field; // 'module name':'field name':'field context'
     protected $_field_type;
     protected $_field_module;
-    protected $_module_data;
+    protected $_field_name;
+    protected $_field_context;
     protected $_widget_name;
     protected $_widget; // instance du widget
     protected $_include_paths;
@@ -64,6 +65,8 @@ abstract class FormFieldAbstract
 
         $field = explode(':', $form_field->field);
         $this->_field_module = $field[0];
+        $this->_field_name = $field[1];
+        $this->_field_context = $field[2];
 
         $this->_disable = false;
     }
